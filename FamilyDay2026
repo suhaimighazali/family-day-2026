@@ -1,0 +1,63 @@
+
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progres Kutipan Family Day 2026</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; padding: 20px; color: #333; }
+        .container { max-width: 450px; margin: auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 5px; }
+        .subtitle { text-align: center; color: #7f8c8d; font-size: 0.9em; margin-bottom: 25px; }
+        .card { display: flex; justify-content: space-between; align-items: center; padding: 15px; margin-bottom: 10px; border-radius: 12px; background: #f9f9f9; border-left: 5px solid #3498db; }
+        .amount { font-weight: bold; color: #27ae60; font-size: 1.1em; }
+        .footer { text-align: center; margin-top: 30px; font-size: 0.8em; color: #bdc3c7; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🎉 Family Day 2026</h2>
+    <div class="subtitle">Live Tracker Kutipan Keluarga</div>
+    
+    <div id="display-list">Memuatkan data terkini...</div>
+    
+    <div class="footer">Data dikemaskini secara automatik oleh Bendahari</div>
+</div>
+
+<script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCSRS7lhcUzTnY_TlD9QWIWR5V-iNorDgI",
+      authDomain: "familyday2026-97427.firebaseapp.com",
+      projectId: "familyday2026-97427",
+      storageBucket: "familyday2026-97427.firebasestorage.app",
+      messagingSenderId: "639288774565",
+      appId: "1:639288774565:web:9c344bd84c520c47cf224c"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Membaca data secara live
+    db.collection("kutipan_keluarga").doc("status_bayaran").onSnapshot((doc) => {
+        const data = doc.data();
+        // Sorting data dari yang paling tinggi ke paling rendah
+        const sortedKeys = Object.keys(data).sort((a, b) => data[b] - data[a]);
+        
+        let html = "";
+        sortedKeys.forEach(family => {
+            html += `
+                <div class="card">
+                    <span><strong>${family.replace(/_/g, ' ')}</strong></span>
+                    <span class="amount">RM ${data[family].toFixed(2)}</span>
+                </div>
+            `;
+        });
+        document.getElementById('display-list').innerHTML = html;
+    });
+</script>
+</body>
+</html>
