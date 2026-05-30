@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -21,7 +21,7 @@
         .month-box { height: 22px; border-radius: 3px; background: #334155; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; }
         .paid { background: #22c55e; }
         .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); }
-        .btn-wa { width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
+        .btn-wa-green { padding: 5px 10px; background: #22c55e; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 0.7rem; }
     </style>
 </head>
 <body>
@@ -48,12 +48,8 @@
         </div>
     </div>
 
-    <div class="card" style="background: #2d3748; border-left: 4px solid #22c55e;">
-        <h4 style="margin:0 0 5px 0; color: #22c55e;">💳 Pelan Ansuran</h4>
-        <div style="font-size: 0.85rem;">Bayaran RM50/bulan boleh dipecahkan secara <b>mingguan (RM12.50/minggu)</b>.</div>
-    </div>
-
-    <button class="btn-wa" onclick="openModal()">BAYAR SEKARANG</button>
+    <button style="width:100%; padding:12px; background:#e67e22; color:white; border:none; border-radius:10px; font-weight:bold; margin-bottom:10px;" onclick="openModal()">BAYAR SEKARANG</button>
+    <button style="width:100%; padding:12px; background:#3b82f6; color:white; border:none; border-radius:10px; font-weight:bold; margin-bottom:15px;" onclick="hantarResit()">HANTAR RESIT KE BENDAHARI</button>
 
     <h2 style="text-align:center; color: var(--gold);">👑 RANKING BAYARAN TERTINGGI</h2>
     <div id="leaderboard"></div>
@@ -75,26 +71,26 @@
             </div>
             <p>Scan QR DuitNow:</p>
             <div style="background:#fff; padding:10px; border-radius:10px; margin-bottom:10px;">
-                <img src="https://i.imgur.com/pQEjcGz.jpeg" alt="[Imej QR DuitNow]" style="width: 100%; max-width: 250px;">
+                <img src="https://i.imgur.com/pQEjcGz.jpeg" alt="QR" style="width: 100%; max-width: 200px;">
             </div>
-            <button style="padding:10px 20px; background:#e67e22; border:none; color:white; border-radius:5px;" onclick="closeModal()">Tutup</button>
+            <button onclick="closeModal()">Tutup</button>
         </div>
     </div>
 </div>
 
 <script>
+    const NO_BENDAHARI = "601164349453"; 
     function openModal() { document.getElementById('payModal').style.display = "block"; }
     function closeModal() { document.getElementById('payModal').style.display = "none"; }
-    
+    function hantarResit() { window.open(`https://wa.me/${NO_BENDAHARI}?text=Salam, saya telah membuat bayaran. Ini resit saya.`); }
+
     const firebaseConfig = { apiKey: "AIzaSyCSRS7lhcUzTnY_TlD9QWIWR5V-iNorDgI", authDomain: "familyday2026-97427.firebaseapp.com", projectId: "familyday2026-97427", storageBucket: "familyday2026-97427.firebasestorage.app", messagingSenderId: "639288774565", appId: "1:639288774565:web:9c344bd84c520c47cf224c" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov"];
 
-    const targetDate = new Date("Nov 18, 2026 00:00:00").getTime();
     setInterval(() => {
-        const now = new Date().getTime();
-        const diff = targetDate - now;
+        const diff = new Date("Nov 18, 2026 00:00:00").getTime() - new Date().getTime();
         document.getElementById('days').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
         document.getElementById('hours').innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         document.getElementById('mins').innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -106,19 +102,29 @@
         const families = Object.keys(data).filter(k => k !== "AVATARS" && k !== "HISTORY");
         const avatars = data.AVATARS || {};
         const history = data.HISTORY || {};
-        const totalFund = families.reduce((sum, f) => sum + (data[f] || 0), 0);
-        document.getElementById('total-fund').innerText = "RM " + totalFund;
-        families.sort((a, b) => (data[b] || 0) - (data[a] || 0));
-        document.getElementById('leaderboard').innerHTML = families.map(f => `
+        document.getElementById('total-fund').innerText = "RM " + families.reduce((sum, f) => sum + (data[f] || 0), 0);
+        document.getElementById('leaderboard').innerHTML = families.sort((a, b) => (data[b] || 0) - (data[a] || 0)).map(f => `
             <div class="card">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <img src="${avatars[f] || 'https://via.placeholder.com/40'}" class="avatar">
                     <div style="flex:1"><b>${f.replace(/_/g, ' ')}</b></div>
+                    <button class="btn-wa-green" onclick="pilihWA('${f}', ${data[f] || 0})">WA</button>
                     <div style="color:var(--gold); font-weight:bold;">RM ${data[f] || 0}</div>
                 </div>
                 <div class="month-grid">${months.map((m, i) => `<div class="month-box ${(history[f] && history[f][i]) ? 'paid' : ''}">${m}</div>`).join('')}</div>
             </div>`).join('');
     });
+
+    function pilihWA(fam, total) {
+        const aksi = prompt("1. Update Bayaran (Bendahari)\n2. Share Status (Ahli)");
+        if(aksi == "1") {
+            const msg = `Salam ${fam.replace(/_/g,' ')}, status dana terkumpul anda ialah RM${total}. Mohon semakan.`;
+            window.open(`https://wa.me/${NO_BENDAHARI}?text=${encodeURIComponent(msg)}`);
+        } else if(aksi == "2") {
+            const msg = `Alhamdulillah, keluarga ${fam.replace(/_/g,' ')} sudah mencapai RM${total} untuk Dana Family Day 2026! Jom keluarga lain kejar ranking!`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+        }
+    }
 
     async function checkAdmin() {
         if(document.getElementById('pass').value === "FamilyDay2026") {
@@ -144,3 +150,5 @@
 </script>
 </body>
 </html>
+
+```
