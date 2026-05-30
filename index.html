@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -36,7 +37,7 @@
         <h3 style="margin:0">🎁 HADIAH MISTERI MENANTI!</h3>
         <div style="font-size: 0.8rem; margin-top:5px;">Target: <b>RM 550</b> (RM 50/bln x 11)</div>
         <div class="info-box">
-            <b>Cara Menang:</b> Bayaran awal setiap bulan, konsisten on-time, dan jumlah kutipan tertinggi/lebih akan melayakkan keluarga anda ke senarai teratas!
+            <b>Cara Menang:</b> Bayaran awal setiap bulan, konsisten on-time, dan jumlah kutipan tertinggi/lebih.
         </div>
     </div>
 
@@ -95,16 +96,34 @@
                 <div class="month-grid">
                     ${months.map((m, i) => `<div class="month-box ${(history[f.name] && history[f.name][i]) ? 'paid' : ''}">${m}</div>`).join('')}
                 </div>
-            </div>`).join('');
+            </div>`).join('').replace(/_/g, ' ');
     });
 
-    function checkAdmin() {
+    async function checkAdmin() {
         if(document.getElementById('pass').value === "FamilyDay2026") {
+            const doc = await db.collection("kutipan_keluarga").doc("status_bayaran").get();
+            const data = doc.data();
+            const history = data.HISTORY || {};
             document.getElementById('admin-panel').style.display = "block";
-            document.getElementById('admin-panel').innerHTML = "Sila kemaskini field <b>HISTORY</b> (format: [true, false,...]) di Firebase Console untuk setiap keluarga.";
+            document.getElementById('admin-panel').innerHTML = Object.keys(history).map(fam => `
+                <div>${fam.replace(/_/g,' ')}: 
+                    <button onclick="toggleMonth('${fam}')">Toggle Bulan</button>
+                </div>`).join('');
+        }
+    }
+
+    async function toggleMonth(fam) {
+        const docRef = db.collection("kutipan_keluarga").doc("status_bayaran");
+        const doc = await docRef.get();
+        const history = doc.data().HISTORY;
+        const current = history[fam];
+        const monthIdx = prompt("Masukkan bulan (0-10, 0=Jan):");
+        if(monthIdx !== null) {
+            current[monthIdx] = !current[monthIdx];
+            await docRef.update({ [`HISTORY.${fam}`]: current });
+            alert("Status dikemaskini!");
         }
     }
 </script>
 </body>
 </html>
-
