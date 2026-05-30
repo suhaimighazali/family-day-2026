@@ -1,29 +1,129 @@
-```html
+
 <!DOCTYPE html>
-<html>
-<body>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Dana Family Day 2026</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <button onclick="resetData()">RESET DATABASE SEKARANG</button>
-    <script>
-        const firebaseConfig = { apiKey: "AIzaSyCSRS7lhcUzTnY_TlD9QWIWR5V-iNorDgI", authDomain: "familyday2026-97427.firebaseapp.com", projectId: "familyday2026-97427", storageBucket: "familyday2026-97427.firebasestorage.app", messagingSenderId: "639288774565", appId: "1:639288774565:web:9c344bd84c520c47cf224c" };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #e67e22; --gold: #ffd700; --bg: #0f172a; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: white; padding: 15px; }
+        .container { max-width: 500px; margin: auto; }
+        .card { background: #1e293b; padding: 15px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-bottom: 15px; border: 1px solid #334155; }
+        
+        .promo-banner { background: linear-gradient(135deg, #f59e0b, #b45309); padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
+        .info-box { font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-top: 10px; text-align: left; }
+        
+        .carousel { height: 110px; overflow: hidden; position: relative; text-align: center; }
+        .badge-item { position: absolute; width: 100%; transition: 0.5s; opacity: 0; }
+        .badge-item.active { opacity: 1; }
+        .big-icon { font-size: 2.5rem; display: block; }
 
-        async function resetData() {
-            const data = {
-                "ABAH_EH": 0, "AYAH_TAN": 0, "BABAH_YAN": 0, "IBU_MI": 0, "MAMA_LANG": 0, "MAMA_NGAH": 0, "PAKTAM_AFIE": 0, "PAPA_AP": 0, "PAPA_LONG": 0,
-                "AVATARS": { "ABAH_EH": "", "AYAH_TAN": "", "BABAH_YAN": "", "IBU_MI": "", "MAMA_LANG": "", "MAMA_NGAH": "", "PAKTAM_AFIE": "", "PAPA_AP": "", "PAPA_LONG": "" },
-                "HISTORY": { 
-                    "ABAH_EH": Array(11).fill(false), "AYAH_TAN": Array(11).fill(false), "BABAH_YAN": Array(11).fill(false), "IBU_MI": Array(11).fill(false),
-                    "MAMA_LANG": Array(11).fill(false), "MAMA_NGAH": Array(11).fill(false), "PAKTAM_AFIE": Array(11).fill(false), "PAPA_AP": Array(11).fill(false), "PAPA_LONG": Array(11).fill(false)
-                }
-            };
-            await db.collection("kutipan_keluarga").doc("status_bayaran").set(data);
-            alert("Database telah diset semula kepada struktur yang betul!");
+        .month-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 10px; }
+        .month-box { height: 22px; border-radius: 3px; background: #334155; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; }
+        .paid { background: #22c55e; }
+        
+        .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); }
+        .btn-wa { width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="promo-banner">
+        <h3 style="margin:0">🎁 HADIAH MISTERI MENANTI!</h3>
+        <div style="font-size: 0.8rem; margin-top:5px;">Target: <b>RM 550</b> (RM 50/bln x 11)</div>
+        <div class="info-box">
+            <b>Cara Menang:</b> Bayaran awal setiap bulan, konsisten on-time, dan jumlah kutipan tertinggi/lebih.
+        </div>
+    </div>
+
+    <div class="card carousel" id="rewardCarousel">
+        <div class="badge-item active">
+            <div class="big-icon">👑</div>
+            <div style="font-weight:bold; font-size: 0.9rem;">GOLD ELITE - Juara Terunggul</div>
+        </div>
+        <div class="badge-item">
+            <div class="big-icon">💎</div>
+            <div style="font-weight:bold; font-size: 0.9rem;">VIP SUPPORTER - Pilihan Utama</div>
+        </div>
+    </div>
+
+    <h2 style="text-align:center; color: var(--gold);">👑 JEJAK BAYARAN KELUARGA</h2>
+    <div id="leaderboard"></div>
+
+    <button class="btn-wa" onclick="window.location.href='https://wa.me/601164349453'">BAYAR SEKARANG</button>
+
+    <div class="card" style="margin-top:15px">
+        <h3>🔐 Panel Bendahari</h3>
+        <input type="password" id="pass" style="padding:8px; width:40%; border-radius:5px;">
+        <button onclick="checkAdmin()" style="padding:8px;">Masuk</button>
+        <div id="admin-panel" style="display:none; margin-top:10px;"></div>
+    </div>
+</div>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyCSRS7lhcUzTnY_TlD9QWIWR5V-iNorDgI", authDomain: "familyday2026-97427.firebaseapp.com", projectId: "familyday2026-97427", storageBucket: "familyday2026-97427.firebasestorage.app", messagingSenderId: "639288774565", appId: "1:639288774565:web:9c344bd84c520c47cf224c" };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov"];
+
+    let idx = 0;
+    const items = document.querySelectorAll('.badge-item');
+    setInterval(() => {
+        items[idx].classList.remove('active');
+        idx = (idx + 1) % items.length;
+        items[idx].classList.add('active');
+    }, 3000);
+
+    db.collection("kutipan_keluarga").doc("status_bayaran").onSnapshot((doc) => {
+        const data = doc.data() || {};
+        const families = Object.keys(data).filter(k => k !== "AVATARS" && k !== "HISTORY").map(key => ({ name: key, amt: data[key] }));
+        const avatars = data.AVATARS || {};
+        const history = data.HISTORY || {};
+        families.sort((a, b) => b.amt - a.amt);
+
+        document.getElementById('leaderboard').innerHTML = families.map(f => `
+            <div class="card">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <img src="${avatars[f.name] || 'https://via.placeholder.com/40'}" class="avatar" onerror="this.src='https://via.placeholder.com/40'">
+                    <div style="flex:1"><b>${f.name.replace(/_/g, ' ')}</b></div>
+                    <div style="color:var(--gold); font-weight:bold;">RM ${f.amt}</div>
+                </div>
+                <div class="month-grid">
+                    ${months.map((m, i) => `<div class="month-box ${(history[f.name] && history[f.name][i]) ? 'paid' : ''}">${m}</div>`).join('')}
+                </div>
+            </div>`).join('').replace(/_/g, ' ');
+    });
+
+    async function checkAdmin() {
+        if(document.getElementById('pass').value === "FamilyDay2026") {
+            const doc = await db.collection("kutipan_keluarga").doc("status_bayaran").get();
+            const data = doc.data();
+            const history = data.HISTORY || {};
+            document.getElementById('admin-panel').style.display = "block";
+            document.getElementById('admin-panel').innerHTML = Object.keys(history).map(fam => `
+                <div>${fam.replace(/_/g,' ')}: 
+                    <button onclick="toggleMonth('${fam}')">Toggle Bulan</button>
+                </div>`).join('');
         }
-    </script>
+    }
+
+    async function toggleMonth(fam) {
+        const docRef = db.collection("kutipan_keluarga").doc("status_bayaran");
+        const doc = await docRef.get();
+        const history = doc.data().HISTORY;
+        const current = history[fam];
+        const monthIdx = prompt("Masukkan bulan (0-10, 0=Jan):");
+        if(monthIdx !== null) {
+            current[monthIdx] = !current[monthIdx];
+            await docRef.update({ [`HISTORY.${fam}`]: current });
+            alert("Status dikemaskini!");
+        }
+    }
+</script>
 </body>
 </html>
-
-```
