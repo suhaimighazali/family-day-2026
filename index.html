@@ -1,15 +1,22 @@
+
 <!DOCTYPE html>
 <html lang="ms">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Family Day 2026</title>
+    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .card { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .btn { padding: 10px; border-radius: 8px; border: none; cursor: pointer; color: white; font-weight: bold; }
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .card { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; }
+        .admin-row { display: flex; flex-direction: column; gap: 5px; padding: 15px; border-bottom: 1px solid #ddd; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 5px; width: 80px; }
+        .btn { padding: 8px 12px; border-radius: 5px; border: none; cursor: pointer; color: white; font-weight: bold; }
+        .btn-update { background: #3498db; }
+        h2 { text-align: center; color: #2c3e50; }
     </style>
 </head>
 <body>
@@ -17,11 +24,16 @@
 <div class="container">
     <h2>🎉 Family Day 2026</h2>
     <div id="display-list">Memuatkan data...</div>
-    <hr>
+
+    <hr style="margin: 30px 0;">
+    
     <h3>🔐 Panel Bendahari</h3>
-    <input type="password" id="pass" placeholder="Kod Akses">
-    <button onclick="checkAdmin()">Masuk</button>
-    <div id="admin-panel" style="display:none;"></div>
+    <input type="password" id="pass" placeholder="Kod Akses" style="width: 60%; padding: 8px;">
+    <button onclick="checkAdmin()" style="padding: 8px;">Masuk</button>
+    
+    <div id="admin-panel" style="display:none; margin-top: 20px;">
+        <div id="admin-list"></div>
+    </div>
 </div>
 
 <script>
@@ -37,12 +49,12 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Paparan Live
+    // Paparan untuk ahli keluarga (Read Only)
     db.collection("kutipan_keluarga").doc("status_bayaran").onSnapshot((doc) => {
         const data = doc.data();
         let html = "";
         for (let family in data) {
-            html += `<div class="card"><span>${family}</span> <b>RM ${data[family]}</b></div>`;
+            html += `<div class="card"><span><strong>${family.replace(/_/g, ' ')}</strong></span> <b>RM ${data[family].toFixed(2)}</b></div>`;
         }
         document.getElementById('display-list').innerHTML = html;
     });
@@ -51,21 +63,33 @@
         if(document.getElementById('pass').value === "FamilyDay2026") {
             document.getElementById('admin-panel').style.display = "block";
             renderAdmin();
-        } else { alert("Kod Salah"); }
+        } else { alert("Kod Salah!"); }
     }
 
     function renderAdmin() {
-        const families = ["PAPA_LONG", "MAMA_NGAH", "MAMA_LANG"]; 
-        document.getElementById('admin-panel').innerHTML = families.map(f => `
-            <div class="card">${f} <button class="btn" style="background:#27ae60" onclick="addFund('${f}')">+ RM50</button></div>
+        const families = ["PAPA_LONG", "MAMA_NGAH", "MAMA_LANG", "AYAH_TAN", "IBU_MI", "PAPA_AP", "ABAH_EH", "BABAH_YAN", "PAKTAM_AFIE"];
+        document.getElementById('admin-list').innerHTML = families.map(f => `
+            <div class="admin-row">
+                <span>${f.replace(/_/g, ' ')}</span>
+                <div style="display:flex; gap:10px;">
+                    <input type="number" id="amt_${f}" placeholder="RM">
+                    <button class="btn btn-update" onclick="updateFund('${f}')">Kemas Kini</button>
+                </div>
+            </div>
         `).join('');
     }
 
-    async function addFund(name) {
-        await db.collection("kutipan_keluarga").doc("status_bayaran").update({
-            [name]: firebase.firestore.FieldValue.increment(50)
-        });
-        alert("Berjaya!");
+    async function updateFund(name) {
+        const amount = parseFloat(document.getElementById('amt_' + name).value);
+        if (isNaN(amount)) { alert("Sila masukkan amaun yang sah!"); return; }
+        
+        if(confirm("Tambah RM" + amount + " untuk " + name.replace(/_/g, ' ') + "?")) {
+            await db.collection("kutipan_keluarga").doc("status_bayaran").update({
+                [name]: firebase.firestore.FieldValue.increment(amount)
+            });
+            alert("Berjaya dikemaskini!");
+            document.getElementById('amt_' + name).value = "";
+        }
     }
 </script>
 </body>
