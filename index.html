@@ -1,4 +1,4 @@
-```html
+
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -13,43 +13,50 @@
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: white; padding: 15px; }
         .container { max-width: 500px; margin: auto; }
         .card { background: #1e293b; padding: 15px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-bottom: 15px; border: 1px solid #334155; }
-        .promo-banner { background: linear-gradient(135deg, #f59e0b, #b45309); padding: 15px; border-radius: 15px; text-align: center; margin-bottom: 15px; }
-        .info-box { font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-top: 10px; text-align: left; }
-        .carousel { height: 110px; overflow: hidden; position: relative; text-align: center; }
-        .badge-item { position: absolute; width: 100%; transition: 0.5s; opacity: 0; }
-        .badge-item.active { opacity: 1; }
-        .big-icon { font-size: 2.5rem; display: block; }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); }
+        .modal-content { background: #1e293b; margin: 10% auto; padding: 20px; border-radius: 20px; width: 85%; max-width: 400px; text-align: center; }
+        .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
+        .count-box { background: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid var(--gold); }
         .month-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 10px; }
         .month-box { height: 22px; border-radius: 3px; background: #334155; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; }
         .paid { background: #22c55e; }
         .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); }
-        .btn-wa { width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-wa { width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="promo-banner">
-        <h3 style="margin:0">🎁 HADIAH MISTERI MENANTI!</h3>
-        <div style="font-size: 0.8rem; margin-top:5px;">Target: <b>RM 550 (Sebulan RM50)</b></div>
-        <div class="info-box"><b>Cara Menang:</b> BAYARAN PALING AWAL HABIS ATAU BAYAR LEBIH.</div>
+    <div style="text-align:center; margin-bottom: 20px;">
+        <h2 style="margin:0; color: var(--gold);">Family Day 2026</h2>
+        <p style="margin:5px 0; font-size: 0.9rem;">Tarikh Cadangan: 18 November 2026</p>
+        <p style="margin:0; font-size: 0.8rem; opacity: 0.8;">Lokasi: Akan diberitahu kelak</p>
     </div>
 
-    <div class="card carousel" id="rewardCarousel">
-        <div class="badge-item active">
-            <div class="big-icon">👑</div>
-            <div id="top-fam" style="font-weight:bold; font-size: 0.9rem;">Memuatkan Juara...</div>
-        </div>
-        <div class="badge-item">
-            <div class="big-icon">💎</div>
-            <div style="font-weight:bold; font-size: 0.9rem;">VIP SUPPORTER - Pilihan Utama</div>
+    <div class="card" style="text-align:center; border: 2px solid var(--gold);">
+        <div style="font-size: 0.8rem; color: var(--gold);">JUMLAH DANA TERKUMPUL</div>
+        <div id="total-fund" style="font-size: 2.2rem; font-weight:bold;">RM 0</div>
+    </div>
+
+    <div class="card">
+        <div style="text-align:center; font-size: 0.8rem; margin-bottom:10px; color: var(--gold);">COUNTDOWN HARI KELUARGA</div>
+        <div class="countdown-grid" id="countdown">
+            <div class="count-box"><div id="days" style="font-weight:bold;">0</div><small>Hari</small></div>
+            <div class="count-box"><div id="hours" style="font-weight:bold;">0</div><small>Jam</small></div>
+            <div class="count-box"><div id="mins" style="font-weight:bold;">0</div><small>Min</small></div>
+            <div class="count-box"><div id="secs" style="font-weight:bold;">0</div><small>Saat</small></div>
         </div>
     </div>
+
+    <div class="card" style="background: #2d3748; border-left: 4px solid #22c55e;">
+        <h4 style="margin:0 0 5px 0; color: #22c55e;">💳 Pelan Ansuran</h4>
+        <div style="font-size: 0.85rem;">Bayaran RM50/bulan boleh dipecahkan secara <b>mingguan (RM12.50/minggu)</b>.</div>
+    </div>
+
+    <button class="btn-wa" onclick="openModal()">BAYAR SEKARANG</button>
 
     <h2 style="text-align:center; color: var(--gold);">👑 RANKING BAYARAN TERTINGGI</h2>
     <div id="leaderboard"></div>
-
-    <button class="btn-wa" onclick="window.location.href='https://wa.me/601164349453'">BAYAR SEKARANG</button>
 
     <div class="card" style="margin-top:15px">
         <h3>🔐 Panel Bendahari</h3>
@@ -57,32 +64,51 @@
         <button onclick="checkAdmin()" style="padding:8px;">Masuk</button>
         <div id="admin-panel" style="display:none; margin-top:10px;"></div>
     </div>
+
+    <div id="payModal" class="modal">
+        <div class="modal-content">
+            <h3>Maklumat Pembayaran</h3>
+            <div style="background: #fff; color: #000; padding: 15px; border-radius: 10px; margin: 10px 0; text-align: left;">
+                <p><b>Bank: BANK ISLAM (BIMB)</b></p>
+                <p><b>Akaun: 02084010672046</b></p>
+                <p><b>Nama: AYSS EMPIRE</b></p>
+            </div>
+            <p>Scan QR DuitNow:</p>
+            <div style="background:#fff; padding:10px; border-radius:10px; margin-bottom:10px;">
+                <img src="https://i.imgur.com/pQEjcGz.jpeg" alt="[Imej QR DuitNow]" style="width: 100%; max-width: 250px;">
+            </div>
+            <button style="padding:10px 20px; background:#e67e22; border:none; color:white; border-radius:5px;" onclick="closeModal()">Tutup</button>
+        </div>
+    </div>
 </div>
 
 <script>
+    function openModal() { document.getElementById('payModal').style.display = "block"; }
+    function closeModal() { document.getElementById('payModal').style.display = "none"; }
+    
     const firebaseConfig = { apiKey: "AIzaSyCSRS7lhcUzTnY_TlD9QWIWR5V-iNorDgI", authDomain: "familyday2026-97427.firebaseapp.com", projectId: "familyday2026-97427", storageBucket: "familyday2026-97427.firebasestorage.app", messagingSenderId: "639288774565", appId: "1:639288774565:web:9c344bd84c520c47cf224c" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov"];
 
-    // Animasi Carousel
+    const targetDate = new Date("Nov 18, 2026 00:00:00").getTime();
     setInterval(() => {
-        const items = document.querySelectorAll('.badge-item');
-        let idx = 0;
-        items.forEach((item, i) => { if(item.classList.contains('active')) idx = i; item.classList.remove('active'); });
-        idx = (idx + 1) % items.length;
-        items[idx].classList.add('active');
-    }, 3000);
+        const now = new Date().getTime();
+        const diff = targetDate - now;
+        document.getElementById('days').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
+        document.getElementById('hours').innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        document.getElementById('mins').innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        document.getElementById('secs').innerText = Math.floor((diff % (1000 * 60)) / 1000);
+    }, 1000);
 
-    // Paparan Data
     db.collection("kutipan_keluarga").doc("status_bayaran").onSnapshot((doc) => {
         const data = doc.data() || {};
         const families = Object.keys(data).filter(k => k !== "AVATARS" && k !== "HISTORY");
         const avatars = data.AVATARS || {};
         const history = data.HISTORY || {};
-        
+        const totalFund = families.reduce((sum, f) => sum + (data[f] || 0), 0);
+        document.getElementById('total-fund').innerText = "RM " + totalFund;
         families.sort((a, b) => (data[b] || 0) - (data[a] || 0));
-
         document.getElementById('leaderboard').innerHTML = families.map(f => `
             <div class="card">
                 <div style="display:flex; align-items:center; gap:10px;">
@@ -90,12 +116,8 @@
                     <div style="flex:1"><b>${f.replace(/_/g, ' ')}</b></div>
                     <div style="color:var(--gold); font-weight:bold;">RM ${data[f] || 0}</div>
                 </div>
-                <div class="month-grid">
-                    ${months.map((m, i) => `<div class="month-box ${(history[f] && history[f][i]) ? 'paid' : ''}">${m}</div>`).join('')}
-                </div>
+                <div class="month-grid">${months.map((m, i) => `<div class="month-box ${(history[f] && history[f][i]) ? 'paid' : ''}">${m}</div>`).join('')}</div>
             </div>`).join('');
-        
-        document.getElementById('top-fam').innerText = "JUARA: " + families[0].replace(/_/g,' ') + " (RM " + (data[families[0]] || 0) + ")";
     });
 
     async function checkAdmin() {
@@ -104,7 +126,7 @@
             const fams = Object.keys(snap.data()).filter(k => k !== "AVATARS" && k !== "HISTORY");
             document.getElementById('admin-panel').style.display = "block";
             document.getElementById('admin-panel').innerHTML = fams.map(f => `<button onclick="toggleMonth('${f}')" style="margin:2px;">Edit ${f.replace(/_/g,' ')}</button>`).join('');
-        } else { alert("Kod Salah!"); }
+        }
     }
 
     async function toggleMonth(fam) {
@@ -116,11 +138,9 @@
             h[fam][m] = !h[fam][m];
             const total = h[fam].filter(v => v === true).length * 50;
             await docRef.update({ [`HISTORY.${fam}`]: h[fam], [fam]: total });
-            alert("Berjaya dikemaskini!");
+            alert("Berjaya!");
         }
     }
 </script>
 </body>
 </html>
-
-```
