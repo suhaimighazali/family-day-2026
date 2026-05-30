@@ -14,9 +14,9 @@
         .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .reward-tier { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; padding: 10px; background: #fffaf0; border-radius: 10px; }
         .badge-icon { font-size: 1.5rem; }
-        .family-row { margin: 15px 0; }
-        .progress-box { height: 12px; background: #eee; border-radius: 6px; overflow: hidden; margin-top: 5px; }
-        .progress-fill { height: 100%; transition: width 1s; }
+        .family-row { margin: 20px 0; }
+        .progress-box { height: 14px; background: #eee; border-radius: 7px; overflow: hidden; margin-top: 5px; }
+        .progress-fill { height: 100%; transition: width 1s ease-in-out; }
         .btn-wa { width: 100%; padding: 12px; background: #25d366; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
@@ -24,31 +24,20 @@
 
 <div class="container">
     <h1>🎉 FAMILY DAY 2026</h1>
-    
-    <!-- GANJARAN EKSKLUSIF (PSIKOLOGI STATUS) -->
+    <p style="text-align:center"><i>Target: RM550 (Jan - Nov 2026)</i></p>
+
     <div class="card" style="border: 2px solid var(--gold);">
-        <h2>🏆 TIER GANJARAN EKSKLUSIF</h2>
-        <div class="reward-tier">
-            <span class="badge-icon">👑</span>
-            <div><b>GOLD ELITE</b> (Bayar Penuh)<br><small>Priority Seating & Extra Lucky Draw</small></div>
-        </div>
-        <div class="reward-tier">
-            <span class="badge-icon">💎</span>
-            <div><b>VIP SUPPORTER</b> (RM300+)<br><small>Nama Special Sponsor Wall & VIP Badge</small></div>
-        </div>
-        <div class="reward-tier">
-            <span class="badge-icon">⭐</span>
-            <div><b>SILVER ACTIVE</b> (Bayar Konsisten)<br><small>Cabutan Bertuah Bonus</small></div>
-        </div>
+        <h2>🏆 TIER GANJARAN</h2>
+        <div class="reward-tier"><span class="badge-icon">👑</span> <div><b>GOLD ELITE</b> (RM550)<br><small>Priority Seating & Lucky Draw</small></div></div>
+        <div class="reward-tier"><span class="badge-icon">💎</span> <div><b>VIP SUPPORTER</b> (RM300+)<br><small>Nama Special Sponsor Wall</small></div></div>
+        <div class="reward-tier"><span class="badge-icon">⭐</span> <div><b>SILVER ACTIVE</b> (Ada Rekod)<br><small>Cabutan Bertuah Bonus</small></div></div>
     </div>
 
-    <!-- LEADERBOARD -->
     <div class="card">
         <h2>🔥 LIVE RACE TO GOLD</h2>
         <div id="leaderboard">Memuatkan data...</div>
     </div>
 
-    <!-- PAYMENT -->
     <div class="card">
         <h2>🏦 BAYARAN</h2>
         <p>Bendahari: <b>Maksu Anna (011-6434 9453)</b></p>
@@ -68,11 +57,11 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    const allFamilies = ["ABAH_EH", "AYAH_TAN", "BABAH_YAN", "IBU_MI", "MAMA_LANG", "MAMA_NGAH", "PAKTAM_AFIE", "PAPA_AP", "PAPA_LONG"];
+
     db.collection("kutipan_keluarga").doc("status_bayaran").onSnapshot((doc) => {
         const data = doc.data() || {};
-        const families = ["PAPA_LONG", "MAMA_NGAH", "MAMA_LANG", "AYAH_TAN", "IBU_MI", "PAPA_AP", "ABAH_EH", "BABAH_YAN", "PAKTAM_AFIE"];
-        
-        document.getElementById('leaderboard').innerHTML = families.map(f => {
+        document.getElementById('leaderboard').innerHTML = allFamilies.map(f => {
             const amt = data[f] || 0;
             let color = "#bdc3c7", label = "Silver";
             if(amt >= 550) { color = "#f1c40f"; label = "Gold Elite"; }
@@ -93,21 +82,18 @@
     function checkAdmin() {
         if(document.getElementById('pass').value === "FamilyDay2026") {
             document.getElementById('admin-panel').style.display = "block";
-            const fams = ["PAPA_LONG", "MAMA_NGAH", "MAMA_LANG", "AYAH_TAN", "IBU_MI", "PAPA_AP", "ABAH_EH", "BABAH_YAN", "PAKTAM_AFIE"];
-            document.getElementById('admin-panel').innerHTML = fams.map(f => `
-                <div style="margin:5px 0;">${f.replace(/_/g,' ')}: <input type="number" id="amt_${f}" style="width:50px"> <button onclick="up('${f}')">OK</button></div>
+            document.getElementById('admin-panel').innerHTML = allFamilies.map(f => `
+                <div style="margin:5px 0;">${f.replace(/_/g,' ')}: <input type="number" id="amt_${f}" style="width:60px"> <button onclick="up('${f}')">Update</button></div>
             `).join('');
         }
     }
 
     async function up(name) {
         const amt = parseFloat(document.getElementById('amt_'+name).value);
-        if(!isNaN(amt)) {
-            await db.collection("kutipan_keluarga").doc("status_bayaran").update({ [name]: firebase.firestore.FieldValue.increment(amt) });
-            alert("Berjaya dikemaskini!");
-        }
+        if(isNaN(amt)) return alert("Masukkan nombor!");
+        await db.collection("kutipan_keluarga").doc("status_bayaran").update({ [name]: amt });
+        alert("Berjaya kemaskini!");
     }
 </script>
 </body>
 </html>
-
