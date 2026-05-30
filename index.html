@@ -6,95 +6,126 @@
     <title>Sistem Dana Family Day 2026</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #e67e22; --gold: #f1c40f; --vip: #9b59b6; --silver: #2ecc71; }
-        body { font-family: 'Poppins', sans-serif; background: #f4f7f6; padding: 20px; }
+        :root { --primary: #e67e22; --gold: #ffd700; --bg: #0f172a; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: white; padding: 15px; }
         .container { max-width: 500px; margin: auto; }
-        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .reward-tier { display: flex; align-items: center; gap: 15px; margin-bottom: 10px; padding: 10px; background: #fffaf0; border-radius: 10px; }
-        .badge-icon { font-size: 1.5rem; }
-        .family-row { margin: 20px 0; }
-        .progress-box { height: 14px; background: #eee; border-radius: 7px; overflow: hidden; margin-top: 5px; }
-        .progress-fill { height: 100%; transition: width 1s ease-in-out; }
-        .btn-wa { width: 100%; padding: 12px; background: #25d366; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .card { background: #1e293b; padding: 15px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); margin-bottom: 15px; border: 1px solid #334155; }
+        
+        .promo-banner { background: linear-gradient(135deg, #f59e0b, #b45309); padding: 15px; border-radius: 15px; text-align: center; }
+        .info-box { font-size: 0.8rem; text-align: left; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; margin-top: 10px; }
+        
+        /* Carousel yang fix saiznya */
+        .carousel-container { height: 140px; text-align: center; overflow: hidden; position: relative; }
+        .badge-box { position: absolute; width: 90%; left: 5%; transition: opacity 0.5s; opacity: 0; }
+        .badge-box.active { opacity: 1; }
+        .big-icon { font-size: 3.5rem; display: block; }
+
+        .rank-card { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 10px; margin-bottom: 8px; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); }
+        .progress-box { height: 8px; background: #334155; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #f59e0b, #fbbf24); transition: width 1s; }
+        .btn-wa { width: 100%; padding: 12px; background: #22c55e; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🎉 FAMILY DAY 2026</h1>
-    <div class="card" style="border: 2px solid var(--gold);">
-        <h2>🏆 TIER GANJARAN</h2>
-        <div class="reward-tier"><span class="badge-icon">👑</span> <div><b>GOLD ELITE</b> (RM550)<br><small>Priority Seating & Lucky Draw</small></div></div>
-        <div class="reward-tier"><span class="badge-icon">💎</span> <div><b>VIP SUPPORTER</b> (RM300+)<br><small>Nama Special Sponsor Wall</small></div></div>
+    <div class="promo-banner">
+        <h3 style="margin:0">🎁 HADIAH MISTERI MENANTI!</h3>
+        <div style="font-size: 0.85rem; margin-top:5px;">Target: <b>RM 550</b> (RM 50/bulan x 11)</div>
+        <div class="info-box">
+            <b>Syarat Pemenang:</b><br>
+            1. Bayaran awal setiap bulan.<br>
+            2. Konsisten on-time.<br>
+            3. Jumlah kutipan tertinggi/lebih.
+        </div>
     </div>
 
-    <div class="card">
-        <h2>🔥 LIVE RACE TO GOLD</h2>
-        <div id="leaderboard">Memuatkan data...</div>
+    <div class="card carousel-container" id="carousel">
+        <div class="badge-box active">
+            <span class="big-icon">👑</span>
+            <div style="font-weight:bold; font-size: 1rem;">GOLD ELITE - Juara Terunggul</div>
+        </div>
+        <div class="badge-box">
+            <span class="big-icon">💎</span>
+            <div style="font-weight:bold; font-size: 1rem;">VIP SUPPORTER - Pilihan Utama</div>
+        </div>
     </div>
 
-    <div class="card">
-        <h2>🏦 BAYARAN</h2>
-        <p>Bendahari: <b>Maksu Anna (011-6434 9453)</b></p>
-        <button class="btn-wa" onclick="window.location.href='https://wa.me/601164349453'">HUBUNGI MAKSU ANNA</button>
-    </div>
+    <h2 style="text-align:center; color: var(--gold);">👑 TOP KELUARGA</h2>
+    <div id="leaderboard"></div>
 
-    <div class="card">
+    <button class="btn-wa" onclick="window.location.href='https://wa.me/601164349453'">BAYAR SEKARANG</button>
+
+    <div class="card" style="margin-top:15px">
         <h3>🔐 Panel Bendahari</h3>
-        <input type="password" id="pass" placeholder="Kod Akses" style="width: 60%; padding: 8px;">
-        <button onclick="checkAdmin()">Masuk</button>
-        <div id="admin-panel" style="display:none; margin-top:20px;"></div>
+        <input type="password" id="pass" style="padding:8px; width:40%; border-radius:5px;">
+        <button onclick="checkAdmin()" style="padding:8px;">Masuk</button>
+        <div id="admin-panel" style="display:none; margin-top:10px;"></div>
     </div>
 </div>
 
 <script>
     const firebaseConfig = { apiKey: "AIzaSyCSRS7lhcUzTnY_TlD9QWIWR5V-iNorDgI", authDomain: "familyday2026-97427.firebaseapp.com", projectId: "familyday2026-97427", storageBucket: "familyday2026-97427.firebasestorage.app", messagingSenderId: "639288774565", appId: "1:639288774565:web:9c344bd84c520c47cf224c" };
-    
-    // Check jika sudah initialized
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const allFamilies = ["ABAH_EH", "AYAH_TAN", "BABAH_YAN", "IBU_MI", "MAMA_LANG", "MAMA_NGAH", "PAKTAM_AFIE", "PAPA_AP", "PAPA_LONG"];
+
+    let currentBadge = 0;
+    const badges = document.querySelectorAll('.badge-box');
+    setInterval(() => {
+        badges[currentBadge].classList.remove('active');
+        currentBadge = (currentBadge + 1) % badges.length;
+        badges[currentBadge].classList.add('active');
+    }, 3000);
 
     db.collection("kutipan_keluarga").doc("status_bayaran").onSnapshot((doc) => {
         const data = doc.data() || {};
-        document.getElementById('leaderboard').innerHTML = allFamilies.map(f => {
-            const amt = data[f] || 0;
-            let color = "#bdc3c7", label = "Silver";
-            if(amt >= 550) { color = "#f1c40f"; label = "Gold Elite"; }
-            else if(amt >= 300) { color = "#9b59b6"; label = "VIP Supporter"; }
-            
-            return `
-                <div class="family-row">
-                    <div style="display:flex; justify-content:space-between; font-weight:bold;">
-                        <span>${f.replace(/_/g, ' ')}</span>
-                        <span>${label}</span>
-                    </div>
-                    <div class="progress-box"><div class="progress-fill" style="width: ${Math.min((amt/550)*100, 100)}%; background: ${color}"></div></div>
-                    <small>Terkumpul: RM ${amt} / RM 550</small>
-                </div>`;
-        }).join('');
+        const families = Object.keys(data).filter(k => k !== "AVATARS").map(key => ({ name: key, amt: data[key] }));
+        const avatars = data.AVATARS || {};
+        families.sort((a, b) => b.amt - a.amt);
+
+        document.getElementById('leaderboard').innerHTML = families.map((f, i) => `
+            <div class="card rank-card">
+                <div style="font-weight:bold; width:20px">${i+1}</div>
+                <img src="${avatars[f.name] || 'https://via.placeholder.com/40'}" class="avatar" onerror="this.src='https://via.placeholder.com/40'">
+                <div style="flex:1">
+                    <div style="font-size:0.9rem">${f.name.replace(/_/g, ' ')}</div>
+                    <div class="progress-box"><div class="progress-fill" style="width: ${Math.min((f.amt/550)*100, 100)}%"></div></div>
+                </div>
+                <div style="font-weight:bold; color:var(--gold)">RM ${f.amt}</div>
+            </div>`).join('');
     });
 
     function checkAdmin() {
         if(document.getElementById('pass').value === "FamilyDay2026") {
             document.getElementById('admin-panel').style.display = "block";
-            document.getElementById('admin-panel').innerHTML = allFamilies.map(f => `
-                <div style="margin:5px 0;">${f.replace(/_/g,' ')}: <input type="number" id="amt_${f}" style="width:60px"> <button onclick="up('${f}')">Update</button></div>
-            `).join('');
+            const fams = ["ABAH_EH", "AYAH_TAN", "BABAH_YAN", "IBU_MI", "MAMA_LANG", "MAMA_NGAH", "PAKTAM_AFIE", "PAPA_AP", "PAPA_LONG"];
+            document.getElementById('admin-panel').innerHTML = `
+                ${fams.map(f => `
+                    <div style="margin-bottom:10px;">
+                        ${f.replace(/_/g,' ')}: <input type="number" id="amt_${f}" placeholder="RM" style="width:50px">
+                        <input type="text" id="ava_${f}" placeholder="URL Gambar" style="width:70px">
+                        <button onclick="up('${f}')">Save</button>
+                    </div>`).join('')}`;
         }
     }
 
     async function up(name) {
         const amt = parseFloat(document.getElementById('amt_'+name).value);
-        if(isNaN(amt)) return alert("Masukkan nombor!");
-        try {
-            await db.collection("kutipan_keluarga").doc("status_bayaran").update({ [name]: amt });
-            alert("Data berjaya disimpan!");
-        } catch(e) { alert("Ralat: " + e.message); }
+        const ava = document.getElementById('ava_'+name).value;
+        const updates = {};
+        if(!isNaN(amt)) updates[name] = amt;
+        
+        const docRef = db.collection("kutipan_keluarga").doc("status_bayaran");
+        const doc = await docRef.get();
+        const currentData = doc.data() || {};
+        const avatars = currentData.AVATARS || {};
+        if(ava) avatars[name] = ava;
+        
+        await docRef.update({ ...updates, AVATARS: avatars });
+        alert("Berjaya dikemaskini!");
     }
 </script>
 </body>
