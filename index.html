@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -35,6 +34,7 @@
         .budget-header { font-weight: bold; color: var(--gold); margin-bottom: 5px; display: block; border-bottom: 1px solid #334155; padding-bottom: 2px; }
         .qr-img { width: 200px; height: 200px; border-radius: 10px; border: 4px solid #fff; margin: 15px 0; }
         .bank-info { background: #0f172a; padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin: 15px 0; }
+        .rules-box { font-size: 0.8rem; background: #334155; padding: 10px; border-radius: 8px; margin-top: 10px; color: #cbd5e1; border-left: 4px solid var(--gold); }
     </style>
 </head>
 <body>
@@ -52,7 +52,7 @@
     </div>
 
     <div class="card">
-        <h4 style="margin-top:0; color:var(--gold);">Countdown</h4>
+        <h4 style="margin-top:0; color:var(--gold);">⏱️ Countdown ke Family Day</h4>
         <div class="countdown-grid">
             <div class="count-box"><div id="days">0</div><small>Hari</small></div>
             <div class="count-box"><div id="hours">0</div><small>Jam</small></div>
@@ -96,9 +96,12 @@
     <button class="btn-main" onclick="document.getElementById('modal').style.display='flex'">SUMBANG DANA SEKARANG</button>
 
     <h2 style="text-align:center; color:var(--gold); margin-top:25px;">👑 Kedudukan Keluarga</h2>
-    <div id="leaderboard"></div>
+    <div class="rules-box">
+        📌 <b>Nota Sistem:</b> Setiap <b>RM 50</b> sumbangan akan mengaktifkan <b>1 bulan</b> bayaran (petak hijau).
+    </div>
+    <div id="leaderboard" style="margin-top: 15px;"></div>
 
-    <div class="card">
+    <div class="card" style="margin-top: 20px;">
         <h3>🔐 Panel Bendahari</h3>
         <input type="password" id="pass" placeholder="Kod Akses" style="padding:10px; width:100%; box-sizing:border-box; border-radius:8px; border:none;">
         <button onclick="checkAdmin()" style="margin-top:10px; width:100%; padding:10px; border-radius:8px; border:none; background:#334155; color:white;">Buka Panel</button>
@@ -150,7 +153,6 @@
         const data = doc.data() || {};
         const families = Object.keys(data).filter(k => k !== "AVATARS" && k !== "HISTORY" && k !== "PHONES");
         const avatars = data.AVATARS || {};
-        const history = data.HISTORY || {};
         
         document.getElementById('total-fund').innerText = "RM " + families.reduce((a, f) => a + (data[f]||0), 0);
         
@@ -163,9 +165,10 @@
 
         document.getElementById('leaderboard').innerHTML = families.sort((a,b) => (data[b]||0)-(data[a]||0)).map(f => {
             const val = data[f] || 0;
+            const paidMonths = Math.floor(val / 50);
             let g = val >= 200 ? 'glow-gold' : (val >= 100 ? 'glow-emerald' : 'glow-silver');
             const status = val >= 200 ? 'Keluarga Komited' : (val >= 100 ? 'Keluarga Prihatin' : 'Keluarga Menyumbang');
-            return `<div class="card"><div style="display:flex; align-items:center; gap:10px;"><img src="${avatars[f]}" class="avatar ${g}"><div><b>${f.replace(/_/g, ' ')}</b><br><small style="color:var(--gold);">${status}</small><br><b>RM ${val}</b></div></div><div class="month-grid">${months.map((m, i) => `<div class="month-box ${(history[f] && history[f][i]) ? 'paid' : ''}">${m}</div>`).join('')}</div></div>`;
+            return `<div class="card"><div style="display:flex; align-items:center; gap:10px;"><img src="${avatars[f]}" class="avatar ${g}"><div><b>${f.replace(/_/g, ' ')}</b><br><small style="color:var(--gold);">${status}</small><br><b>RM ${val}</b></div></div><div class="month-grid">${months.map((m, i) => `<div class="month-box ${i < paidMonths ? 'paid' : ''}">${m}</div>`).join('')}</div></div>`;
         }).join('');
     });
 
@@ -188,3 +191,4 @@
 </script>
 </body>
 </html>
+
