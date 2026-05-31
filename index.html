@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ms">
 <head>
@@ -20,8 +21,8 @@
         .glow-gold { border: 3px solid var(--gold); box-shadow: 0 0 15px var(--gold); animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         .month-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 10px; }
-        .month-box { height: 20px; border-radius: 3px; background: #334155; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; }
-        .paid { background: #22c55e; }
+        .month-box { height: 20px; border-radius: 3px; background: #334155; font-size: 0.5rem; display: flex; align-items: center; justify-content: center; }
+        .paid { background: #22c55e !important; }
         .slider-container { width: 100%; overflow: hidden; }
         .slider { display: flex; animation: slide 15s linear infinite; gap: 20px; width: max-content; }
         @keyframes slide { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
@@ -39,6 +40,7 @@
     </div>
 
     <div class="card">
+        <h4 style="text-align:center; font-size:0.9rem; margin-top:0; color:var(--gold);">Countdown ke Family Day 2026</h4>
         <div class="countdown-grid">
             <div class="count-box"><div id="days" style="font-weight:bold;">0</div><small>Hari</small></div>
             <div class="count-box"><div id="hours" style="font-weight:bold;">0</div><small>Jam</small></div>
@@ -50,7 +52,7 @@
     <div class="card">
         <h4 style="margin:0 0 10px 0; color:var(--gold)">Status Bayaran Terkini</h4>
         <div class="slider-container"><div class="slider" id="slider"></div></div>
-        <div style="font-size:0.65rem; margin-top:8px; display:flex; justify-content:space-between;">
+        <div style="font-size:0.65rem; margin-top:12px; display:flex; justify-content:space-between; color:#94a3b8;">
             <span><b style="color:#C0C0C0">Silver:</b> 1-3 bln</span>
             <span><b style="color:#10b981">Emerald:</b> 4-7 bln</span>
             <span><b style="color:var(--gold)">Gold:</b> 8+ bln</span>
@@ -75,9 +77,9 @@
     <button class="btn-wa" onclick="window.open('https://wa.me/601164349453')">BAYAR SEKARANG</button>
 
     <h2 style="text-align:center; color:var(--gold)">👑 RANKING & STATUS</h2>
-    <div style="font-size:0.75rem; margin-bottom:10px; text-align:center;">
-        <span class="paid" style="padding:2px 6px; border-radius:3px">Hijau</span> = Sudah Bayar | 
-        <span style="background:#334155; padding:2px 6px; border-radius:3px">Kelabu</span> = Belum
+    <div style="text-align:center; font-size: 0.75rem; margin-bottom: 10px;">
+        <span style="background:#22c55e; padding: 2px 8px; border-radius: 4px;">Hijau</span> = Paid | 
+        <span style="background:#334155; padding: 2px 8px; border-radius: 4px;">Kelabu</span> = Belum
     </div>
     <div id="leaderboard"></div>
 
@@ -105,20 +107,19 @@
 
     db.collection("kutipan_keluarga").doc("status_bayaran").onSnapshot((doc) => {
         const data = doc.data() || {};
-        const families = Object.keys(data).filter(k => k !== "AVATARS" && k !== "HISTORY");
+        const families = Object.keys(data).filter(k => k !== "AVATARS" && k !== "HISTORY" && k !== "PHONES");
         const avatars = data.AVATARS || {};
         const history = data.HISTORY || {};
-        const sorted = families.sort((a,b) => (data[b]||0)-(data[a]||0));
         
-        document.getElementById('slider').innerHTML = sorted.map(f => {
-            const c = (history[f] || []).filter(v => v).length;
-            let g = c >= 8 ? 'glow-gold' : (c >= 4 ? 'glow-emerald' : (c > 0 ? 'glow-silver' : ''));
-            return `<img src="${avatars[f]}" class="avatar ${data[f]>0?g:''}">`;
+        document.getElementById('slider').innerHTML = families.map(f => {
+            const count = (history[f] || []).filter(v => v).length;
+            let g = count >= 8 ? 'glow-gold' : (count >= 4 ? 'glow-emerald' : (count > 0 ? 'glow-silver' : ''));
+            return `<img src="${avatars[f]}" class="avatar ${g}">`;
         }).join('');
 
-        document.getElementById('total-fund').innerText = "RM " + sorted.reduce((a, f) => a + (data[f]||0), 0);
+        document.getElementById('total-fund').innerText = "RM " + families.reduce((a, f) => a + (data[f]||0), 0);
         
-        document.getElementById('leaderboard').innerHTML = sorted.map(f => `
+        document.getElementById('leaderboard').innerHTML = families.sort((a,b) => (data[b]||0)-(data[a]||0)).map(f => `
             <div class="card">
                 <div style="display:flex; align-items:center; gap:10px;">
                     <img src="${avatars[f]}" class="avatar">
@@ -128,12 +129,21 @@
             </div>`).join('');
     });
 
-    async function checkAdmin() {
+    function checkAdmin() {
         if(document.getElementById('pass').value === "FamilyDay2026") {
-            const snap = await db.collection("kutipan_keluarga").doc("status_bayaran").get();
-            const fams = Object.keys(snap.data()).filter(k => k !== "AVATARS" && k !== "HISTORY");
-            document.getElementById('admin-panel').style.display = "block";
-            document.getElementById('admin-panel').innerHTML = "<h5>Edit Bayaran & Notifikasi WA:</h5>" + fams.map(f => `<button style="margin:2px;" onclick="editFam('${f}')">${f.split('_')[0]}</button>`).join('');
+            db.collection("kutipan_keluarga").doc("status_bayaran").get().then(snap => {
+                const data = snap.data();
+                const fams = Object.keys(data).filter(k => k !== "AVATARS" && k !== "HISTORY" && k !== "PHONES");
+                document.getElementById('admin-panel').style.display = "block";
+                document.getElementById('admin-panel').innerHTML = fams.map(f => `
+                    <div style="border-top:1px solid #334155; padding:10px 0;">
+                        <b>${f.replace(/_/g, ' ')}</b><br>
+                        <div style="display:flex; gap:5px; margin-top:5px;">
+                            <button onclick="editFam('${f}')" style="background:#2563eb; color:white; border:none; padding:5px; border-radius:5px; flex:1;">Edit Bayar</button>
+                            <button onclick="window.open('https://wa.me/${data.PHONES?.[f] || ''}?text=${encodeURIComponent('Salam '+f.replace(/_/g, ' ')+', sekadar peringatan mesra untuk dana Family Day 2026 kita. Terima kasih atas kerjasama keluarga!')}')" style="background:#22c55e; color:white; border:none; padding:5px; border-radius:5px; flex:1;">Peringatan</button>
+                        </div>
+                    </div>`).join('');
+            });
         }
     }
 
@@ -144,11 +154,11 @@
             const doc = await docRef.get();
             let h = doc.data().HISTORY;
             h[fam][m] = !h[fam][m];
-            const total = h[fam].filter(v=>v).length * 50;
-            await docRef.update({ [`HISTORY.${fam}`]: h[fam], [fam]: total });
-            window.open(`https://wa.me/601164349453?text=${encodeURIComponent('Sistem Bendahari: Keluarga '+fam+' telah dikemaskini. Jumlah terkini: RM '+total+'. Sila semak sistem.')}`);
+            await docRef.update({ [`HISTORY.${fam}`]: h[fam], [fam]: h[fam].filter(v=>v).length * 50 });
         }
     }
 </script>
 </body>
 </html>
+
+```
