@@ -129,7 +129,13 @@
     const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov"];
 
     function shareToWhatsApp() {
-        window.open("https://wa.me/?text=" + encodeURIComponent("Jom pantau dana Family Day kita: " + window.location.href));
+        const text = encodeURIComponent(
+            "✨ *Jom Meriahkan Family Day 2026!* ✨\n\n" +
+            "Setiap sumbangan anda sangat berharga untuk mengeratkan silaturahim keluarga kita. Jom pantau perkembangan dana & tentatif terkini di sini:\n\n" + 
+            window.location.href + 
+            "\n\n*Terima kasih kerana sentiasa menyokong!* ❤️"
+        );
+        window.open("https://wa.me/?text=" + text);
     }
 
     setInterval(() => {
