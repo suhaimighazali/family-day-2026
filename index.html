@@ -8,95 +8,117 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --primary: #e67e22; --gold: #ffd700; --bg: #0f172a; }
-        body { font-family: sans-serif; background: var(--bg); color: white; padding: 15px; }
+        :root { --primary: #e67e22; --gold: #ffd700; --bg: #0f172a; --accent: #3b82f6; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: #f1f5f9; padding: 15px; }
         .container { max-width: 500px; margin: auto; }
-        .card { background: #1e293b; padding: 15px; border-radius: 20px; margin-bottom: 15px; border: 1px solid #334155; }
-        .table-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #334155; font-size: 0.9rem; }
-        .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
-        .count-box { background: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid var(--gold); }
-        .avatar-wrap { display: flex; flex-direction: column; align-items: center; min-width: 70px; }
-        .avatar { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #475569; object-fit: cover; }
+        .card { background: #1e293b; padding: 15px; border-radius: 16px; margin-bottom: 15px; border: 1px solid #334155; }
+        .table-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #334155; font-size: 0.95rem; }
+        .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; margin-top: 10px; }
+        .count-box { background: #0f172a; padding: 8px; border-radius: 10px; border: 1px solid var(--gold); }
+        .avatar { width: 55px; height: 55px; border-radius: 50%; border: 3px solid #475569; object-fit: cover; }
         .glow-gold { border: 3px solid var(--gold); box-shadow: 0 0 15px var(--gold); animation: pulse 1.5s infinite; }
-        .glow-emerald { border: 3px solid #10b981; box-shadow: 0 0 10px #10b981; }
-        .glow-silver { border: 3px solid #C0C0C0; box-shadow: 0 0 10px #C0C0C0; }
+        .glow-emerald { border: 3px solid #10b981; }
+        .glow-silver { border: 3px solid #C0C0C0; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
         .month-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; margin-top: 10px; }
-        .month-box { height: 20px; border-radius: 3px; background: #334155; font-size: 0.5rem; display: flex; align-items: center; justify-content: center; }
-        .paid { background: #22c55e !important; }
-        .slider-container { width: 100%; overflow: hidden; }
-        .slider { display: flex; animation: slide 15s linear infinite; gap: 20px; width: max-content; }
+        .month-box { height: 22px; border-radius: 4px; background: #334155; font-size: 0.6rem; display: flex; align-items: center; justify-content: center; }
+        .paid { background: #22c55e !important; color: white; }
+        .slider-container { width: 100%; overflow: hidden; padding: 10px 0; }
+        .slider { display: flex; animation: slide 15s linear infinite; gap: 25px; width: max-content; }
         @keyframes slide { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .btn-pulse { animation: pulse 1.5s infinite; background: #22c55e; border: none; color: white; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
-        .btn-share { background: #25d366; border: none; color: white; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
-        .modal-content { background: #1e293b; padding: 20px; border-radius: 20px; max-width: 400px; text-align: center; }
+        .btn-main { background: #22c55e; color: white; border: none; padding: 14px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.3s; animation: pulse 2s infinite; }
+        .btn-share { background: #25d366; border: none; color: white; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; cursor: pointer; margin-top: 10px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: #1e293b; padding: 25px; border-radius: 20px; max-width: 350px; text-align: center; }
+        .tentatif-list { border-left: 2px solid var(--gold); padding-left: 15px; }
+        .budget-category { margin-bottom: 10px; }
+        .budget-header { font-weight: bold; color: var(--gold); margin-bottom: 5px; display: block; border-bottom: 1px solid #334155; padding-bottom: 2px; }
+        .qr-img { width: 200px; height: 200px; border-radius: 10px; border: 4px solid #fff; margin: 15px 0; }
+        .bank-info { background: #0f172a; padding: 15px; border-radius: 12px; border: 1px solid var(--gold); margin: 15px 0; }
     </style>
 </head>
 <body>
 <div class="container">
     <h2 style="text-align:center; color: var(--gold);">Family Day 2026</h2>
-    <p style="text-align:center; font-size: 0.85rem;">Tarikh: 18-19 Disember 2026 | <b>Lokasi: Sedang dalam pencarian.</b></p>
-
-    <div class="card" style="border: 1px solid #e67e22; text-align: center; font-size: 0.85rem; padding: 10px;">
-        <p style="margin: 0; color: #ffd700;"><i>"Setiap sumbangan sangat bermakna buat kemeriahan kita bersama."</i></p>
+    <p style="text-align:center; font-size: 0.9rem;">Tarikh: 18-19 Disember 2026 | <b>Lokasi: Sedang dalam pencarian.</b></p>
+    
+    <div class="card" style="border: 1px solid var(--primary); text-align: center; font-style: italic;">
+        "Keluarga kita adalah harta paling bernilai. Setiap sumbangan anda, tidak kira besar atau kecil, adalah bukti cinta dan komitmen kita bersama."
     </div>
 
     <div class="card" style="border: 2px solid var(--gold);">
-        <div style="text-align:center; color:var(--gold)">JUMLAH DANA TERKUMPUL</div>
-        <div id="total-fund" style="text-align:center; font-size: 2.2rem; font-weight:bold;">RM 0</div>
+        <div style="text-align:center; color:var(--gold); font-size: 0.8rem; letter-spacing: 1px;">JUMLAH DANA</div>
+        <div id="total-fund" style="text-align:center; font-size: 2.5rem; font-weight:bold;">RM 0</div>
     </div>
 
     <div class="card">
-        <h4 style="text-align:center; font-size:0.9rem; margin-top:0; color:var(--gold);">Countdown ke Family Day</h4>
+        <h4 style="margin-top:0; color:var(--gold);">Countdown</h4>
         <div class="countdown-grid">
-            <div class="count-box"><div id="days" style="font-weight:bold;">0</div><small>Hari</small></div>
-            <div class="count-box"><div id="hours" style="font-weight:bold;">0</div><small>Jam</small></div>
-            <div class="count-box"><div id="mins" style="font-weight:bold;">0</div><small>Min</small></div>
-            <div class="count-box"><div id="secs" style="font-weight:bold;">0</div><small>Saat</small></div>
+            <div class="count-box"><div id="days">0</div><small>Hari</small></div>
+            <div class="count-box"><div id="hours">0</div><small>Jam</small></div>
+            <div class="count-box"><div id="mins">0</div><small>Min</small></div>
+            <div class="count-box"><div id="secs">0</div><small>Saat</small></div>
         </div>
     </div>
 
     <div class="card">
-        <h4 style="margin:0 0 10px 0; color:var(--gold)">Keluarga Komited</h4>
+        <h4 style="margin-top:0; color:var(--gold);">Keluarga Komited</h4>
         <div class="slider-container"><div class="slider" id="slider"></div></div>
     </div>
 
     <div class="card">
-        <h4>📊 ANGGARAN Belanjawan</h4>
-        <div class="table-row"><span>Penginapan</span><span>RM 2,000</span></div>
-        <div class="table-row"><span>Katering</span><span>RM 1,950</span></div>
-        <div class="table-row"><span>Sukaneka & Cenderahati</span><span>RM 800</span></div>
-        <div class="table-row" style="color:var(--gold)"><span>JUMLAH BESAR</span><span>RM 4,950</span></div>
+        <h4 style="color:var(--gold);">📅 Tentatif Aktiviti</h4>
+        <div class="tentatif-list">
+            <p><b>18 Disember:</b><br>14:00 - Ketibaan & Daftar<br>16:00 - Sukaneka Mesra<br>20:00 - BBQ Malam Keluarga</p>
+            <p><b>19 Disember:</b><br>08:00 - Sarapan Pagi<br>12:00 - Bersurai</p>
+        </div>
     </div>
 
     <div class="card">
-        <h4>📅 Tentatif Aktiviti</h4>
-        <small><b>18 Dis:</b> 02:00 PM - Daftar, 04:00 PM - Sukaneka, 08:00 PM - BBQ, 09:00 PM - Sesi Keluarga.</small><br><br>
-        <small><b>19 Dis:</b> 08:00 AM - Sarapan, 10:00 AM - Hadiah & Fotografi, 12:00 PM - Bersurai.</small>
+        <h4 style="color:var(--gold);">💰 Anggaran Belanjawan Terperinci</h4>
+        <div class="budget-category">
+            <span class="budget-header">Penginapan & Logistik</span>
+            <div class="table-row"><span>Sewa Resort/Homestay</span><span>RM 2,000</span></div>
+        </div>
+        <div class="budget-category">
+            <span class="budget-header">Jamuan & Katering</span>
+            <div class="table-row"><span>BBQ & Makan Malam</span><span>RM 1,200</span></div>
+            <div class="table-row"><span>Sarapan & Minum Petang</span><span>RM 750</span></div>
+        </div>
+        <div class="budget-category">
+            <span class="budget-header">Aktiviti & Hadiah</span>
+            <div class="table-row"><span>Hadiah Sukaneka</span><span>RM 500</span></div>
+            <div class="table-row"><span>Peralatan Sukaneka</span><span>RM 300</span></div>
+        </div>
+        <div class="table-row" style="color:var(--gold); font-size: 1.1rem; font-weight:bold; margin-top:10px;"><span>JUMLAH KESELURUHAN</span><span>RM 4,750</span></div>
     </div>
 
-    <button class="btn-pulse" onclick="document.getElementById('modal').style.display='flex'">SUMBANG DANA</button>
+    <button class="btn-main" onclick="document.getElementById('modal').style.display='flex'">SUMBANG DANA SEKARANG</button>
 
-    <h2 style="text-align:center; color:var(--gold); margin-top:20px;">👑 KELUARGA PRIHATIN</h2>
+    <h2 style="text-align:center; color:var(--gold); margin-top:25px;">👑 Kedudukan Keluarga</h2>
     <div id="leaderboard"></div>
 
     <div class="card">
         <h3>🔐 Panel Bendahari</h3>
-        <input type="password" id="pass" placeholder="Kod Akses" style="padding:8px; width:100%; box-sizing:border-box;">
-        <button onclick="checkAdmin()" style="margin-top:10px; width:100%; padding:10px;">Buka Panel Kawalan</button>
-        <button class="btn-share" onclick="shareToWhatsApp()">Kongsi ke Kumpulan WhatsApp</button>
+        <input type="password" id="pass" placeholder="Kod Akses" style="padding:10px; width:100%; box-sizing:border-box; border-radius:8px; border:none;">
+        <button onclick="checkAdmin()" style="margin-top:10px; width:100%; padding:10px; border-radius:8px; border:none; background:#334155; color:white;">Buka Panel</button>
+        <button class="btn-share" onclick="shareToWhatsApp()">Kongsi ke WhatsApp Keluarga</button>
         <div id="admin-panel" style="margin-top:15px; display:none;"></div>
     </div>
 </div>
 
 <div id="modal" class="modal">
     <div class="modal-content">
-        <h3>Sumbangan Dana</h3>
-        <p><b>BANK ISLAM: 02084010672046 (AYSS EMPIRE)</b></p>
-        <img src="https://i.imgur.com/pQEjcGz.jpeg" style="width:100%; border-radius:10px; margin:10px 0;" alt="[attachment_0](attachment)">
-        <button onclick="window.open('https://wa.me/601123456789?text=Assalamualaikum, saya ingin menghantar resit sumbangan Family Day.')" style="padding:10px; width:100%; background:#22c55e; border:none; color:white; border-radius:5px; margin-bottom:10px;">HANTAR RESIT (WHATSAPP)</button>
-        <button onclick="document.getElementById('modal').style.display='none'" style="padding:10px; width:100%; background:#475569; border:none; color:white; border-radius:5px;">Tutup</button>
+        <h3 style="color:var(--gold);">Sumbangan Dana</h3>
+        <div class="bank-info">
+            <div style="font-size: 0.9rem; color:var(--gold); font-weight:bold;">BANK ISLAM</div>
+            <div style="font-size: 1.2rem; font-weight:bold; margin: 5px 0;">02084010672046</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">AYSS EMPIRE</div>
+        </div>
+        <img src="https://i.imgur.com/pQEjcGz.jpeg" alt="QR Code Bank Islam" class="qr-img">
+        <p style="font-size: 0.8rem;">Sila imbas untuk bayaran terus</p>
+        <button onclick="window.open('https://wa.me/601123456789?text=Assalamualaikum, saya ingin menghantar resit sumbangan Family Day.')" style="margin-top:15px; padding:12px; width:100%; background:#25d366; border:none; color:white; border-radius:8px;">HANTAR RESIT (WHATSAPP)</button>
+        <button onclick="document.getElementById('modal').style.display='none'" style="margin-top:10px; padding:12px; width:100%; background:#475569; border:none; color:white; border-radius:8px;">Tutup</button>
     </div>
 </div>
 
@@ -107,8 +129,7 @@
     const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov"];
 
     function shareToWhatsApp() {
-        const text = encodeURIComponent("Jom sertai dan pantau dana Family Day kita di: " + window.location.href);
-        window.open("https://wa.me/?text=" + text);
+        window.open("https://wa.me/?text=" + encodeURIComponent("Jom pantau dana Family Day kita: " + window.location.href));
     }
 
     setInterval(() => {
@@ -125,22 +146,21 @@
         const avatars = data.AVATARS || {};
         const history = data.HISTORY || {};
         
-        document.getElementById('slider').innerHTML = families.map(f => {
-            const count = (history[f] || []).filter(v => v).length;
-            let g = count >= 8 ? 'glow-gold' : (count >= 4 ? 'glow-emerald' : (count > 0 ? 'glow-silver' : ''));
-            return `<div class="avatar-wrap"><img src="${avatars[f]}" class="avatar ${g}"><small>RM ${data[f]||0}</small></div>`;
-        }).join('');
-
         document.getElementById('total-fund').innerText = "RM " + families.reduce((a, f) => a + (data[f]||0), 0);
         
-        document.getElementById('leaderboard').innerHTML = families.sort((a,b) => (data[b]||0)-(data[a]||0)).map(f => `
-            <div class="card">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <img src="${avatars[f]}" class="avatar">
-                    <div><b>${f.replace(/_/g, ' ')}</b><br><small>Jumlah: RM ${data[f] || 0}</small></div>
-                </div>
-                <div class="month-grid">${months.map((m, i) => `<div class="month-box ${(history[f] && history[f][i]) ? 'paid' : ''}">${m}</div>`).join('')}</div>
-            </div>`).join('');
+        document.getElementById('slider').innerHTML = families.map(f => {
+            const val = data[f] || 0;
+            let g = val >= 200 ? 'glow-gold' : (val >= 100 ? 'glow-emerald' : 'glow-silver');
+            let status = val >= 200 ? 'Komited' : (val >= 100 ? 'Prihatin' : 'Menyumbang');
+            return `<div style="text-align:center;"><img src="${avatars[f]}" class="avatar ${g}"><div style="font-size:0.6rem; margin-top:5px; color:var(--gold);">${status}</div><div style="font-size:0.7rem;">RM ${val}</div></div>`;
+        }).join('');
+
+        document.getElementById('leaderboard').innerHTML = families.sort((a,b) => (data[b]||0)-(data[a]||0)).map(f => {
+            const val = data[f] || 0;
+            let g = val >= 200 ? 'glow-gold' : (val >= 100 ? 'glow-emerald' : 'glow-silver');
+            const status = val >= 200 ? 'Keluarga Komited' : (val >= 100 ? 'Keluarga Prihatin' : 'Keluarga Menyumbang');
+            return `<div class="card"><div style="display:flex; align-items:center; gap:10px;"><img src="${avatars[f]}" class="avatar ${g}"><div><b>${f.replace(/_/g, ' ')}</b><br><small style="color:var(--gold);">${status}</small><br><b>RM ${val}</b></div></div><div class="month-grid">${months.map((m, i) => `<div class="month-box ${(history[f] && history[f][i]) ? 'paid' : ''}">${m}</div>`).join('')}</div></div>`;
+        }).join('');
     });
 
     function checkAdmin() {
@@ -149,12 +169,7 @@
                 const data = snap.data();
                 const fams = Object.keys(data).filter(k => k !== "AVATARS" && k !== "HISTORY" && k !== "PHONES");
                 document.getElementById('admin-panel').style.display = "block";
-                document.getElementById('admin-panel').innerHTML = fams.map(f => `
-                    <div style="border-top:1px solid #334155; padding:10px 0;">
-                        <b>${f.replace(/_/g, ' ')}</b><br>
-                        <input type="number" id="amt_${f}" value="${data[f] || 0}" style="width:60px; color:black;">
-                        <button onclick="updateData('${f}')" style="background:#2563eb; color:white; border:none; padding:5px; border-radius:5px;">Simpan</button>
-                    </div>`).join('');
+                document.getElementById('admin-panel').innerHTML = fams.map(f => `<div style="border-top:1px solid #334155; padding:8px 0;"><b>${f.replace(/_/g, ' ')}</b><br><input type="number" id="amt_${f}" value="${data[f] || 0}" style="width:60px; padding:4px;"><button onclick="updateData('${f}')" style="background:#2563eb; color:white; border:none; padding:4px 8px; border-radius:4px;">Simpan</button></div>`).join('');
             });
         }
     }
