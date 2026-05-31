@@ -15,6 +15,7 @@
         .table-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #334155; font-size: 0.9rem; }
         .countdown-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; }
         .count-box { background: #0f172a; padding: 10px; border-radius: 10px; border: 1px solid var(--gold); }
+        .avatar-wrap { display: flex; flex-direction: column; align-items: center; min-width: 70px; }
         .avatar { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #475569; object-fit: cover; }
         .glow-silver { border: 3px solid #C0C0C0; box-shadow: 0 0 10px #C0C0C0; }
         .glow-emerald { border: 3px solid #10b981; box-shadow: 0 0 10px #10b981; }
@@ -26,7 +27,9 @@
         .slider-container { width: 100%; overflow: hidden; }
         .slider { display: flex; animation: slide 15s linear infinite; gap: 20px; width: max-content; }
         @keyframes slide { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .btn-wa { width: 100%; padding: 12px; background: #22c55e; border: none; color: white; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-pulse { animation: pulse 1.5s infinite; background: #22c55e; border: none; color: white; padding: 12px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: #1e293b; padding: 20px; border-radius: 20px; max-width: 400px; text-align: center; }
     </style>
 </head>
 <body>
@@ -52,11 +55,6 @@
     <div class="card">
         <h4 style="margin:0 0 10px 0; color:var(--gold)">Status Bayaran Terkini</h4>
         <div class="slider-container"><div class="slider" id="slider"></div></div>
-        <div style="font-size:0.65rem; margin-top:12px; display:flex; justify-content:space-between; color:#94a3b8;">
-            <span><b style="color:#C0C0C0">Silver:</b> 1-3 bln</span>
-            <span><b style="color:#10b981">Emerald:</b> 4-7 bln</span>
-            <span><b style="color:var(--gold)">Gold:</b> 8+ bln</span>
-        </div>
     </div>
 
     <div class="card">
@@ -74,13 +72,9 @@
         <small><b>19 Dis:</b> 08:00 AM - Sarapan, 10:00 AM - Hadiah & Fotografi, 12:00 PM - Bersurai.</small>
     </div>
 
-    <button class="btn-wa" onclick="window.open('https://wa.me/601164349453')">BAYAR SEKARANG</button>
+    <button class="btn-pulse" onclick="document.getElementById('modal').style.display='flex'">BAYAR SEKARANG</button>
 
     <h2 style="text-align:center; color:var(--gold)">👑 RANKING & STATUS</h2>
-    <div style="text-align:center; font-size: 0.75rem; margin-bottom: 10px;">
-        <span style="background:#22c55e; padding: 2px 8px; border-radius: 4px;">Hijau</span> = Paid | 
-        <span style="background:#334155; padding: 2px 8px; border-radius: 4px;">Kelabu</span> = Belum
-    </div>
     <div id="leaderboard"></div>
 
     <div class="card">
@@ -88,6 +82,19 @@
         <input type="password" id="pass" placeholder="Kod Akses" style="padding:8px; width:100%; box-sizing:border-box;">
         <button onclick="checkAdmin()" style="margin-top:10px; width:100%; padding:10px;">Buka Panel Kawalan</button>
         <div id="admin-panel" style="margin-top:15px; display:none;"></div>
+    </div>
+</div>
+
+<div id="modal" class="modal">
+    <div class="modal-content">
+        <h3>Maklumat Akaun Bendahari</h3>
+        <p><b>BANK ISLAM</b></p>
+        <p>Akaun: 02084010672046<br>AYSS EMPIRE</p>
+        <img src="https://i.imgur.com/pQEjcGz.jpeg" style="width:100%; border-radius:10px; margin:10px 0;">
+        <div style="display:grid; gap:10px;">
+            <button onclick="window.open('https://wa.me/601164349453?text=Salam, saya ingin menghantar resit bayaran Family Day 2026.')" style="padding:10px; background:#22c55e; border:none; color:white; border-radius:5px;">Hantar Resit ke Bendahari</button>
+            <button onclick="document.getElementById('modal').style.display='none'" style="padding:10px; background:#475569; border:none; color:white; border-radius:5px;">Tutup</button>
+        </div>
     </div>
 </div>
 
@@ -114,7 +121,7 @@
         document.getElementById('slider').innerHTML = families.map(f => {
             const count = (history[f] || []).filter(v => v).length;
             let g = count >= 8 ? 'glow-gold' : (count >= 4 ? 'glow-emerald' : (count > 0 ? 'glow-silver' : ''));
-            return `<img src="${avatars[f]}" class="avatar ${g}">`;
+            return `<div class="avatar-wrap"><img src="${avatars[f]}" class="avatar ${g}"><small>RM ${data[f]||0}</small></div>`;
         }).join('');
 
         document.getElementById('total-fund').innerText = "RM " + families.reduce((a, f) => a + (data[f]||0), 0);
@@ -140,7 +147,7 @@
                         <b>${f.replace(/_/g, ' ')}</b><br>
                         <div style="display:flex; gap:5px; margin-top:5px;">
                             <button onclick="editFam('${f}')" style="background:#2563eb; color:white; border:none; padding:5px; border-radius:5px; flex:1;">Edit Bayar</button>
-                            <button onclick="window.open('https://wa.me/${data.PHONES?.[f] || ''}?text=${encodeURIComponent('Salam '+f.replace(/_/g, ' ')+', sekadar peringatan mesra untuk dana Family Day 2026 kita. Terima kasih atas kerjasama keluarga!')}')" style="background:#22c55e; color:white; border:none; padding:5px; border-radius:5px; flex:1;">Peringatan</button>
+                            <button onclick="window.open('https://wa.me/${data.PHONES?.[f] || ''}?text=${encodeURIComponent('Salam '+f.replace(/_/g, ' ')+', sekadar peringatan mesra untuk dana Family Day 2026 kita.')}')" style="background:#22c55e; color:white; border:none; padding:5px; border-radius:5px; flex:1;">Peringatan</button>
                         </div>
                     </div>`).join('');
             });
