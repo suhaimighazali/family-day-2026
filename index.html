@@ -435,6 +435,7 @@
 <canvas id="canvas-download" width="1080" height="1920" style="display:none;"></canvas>
 
 <script>
+    // Konfigurasi Firebase dan Inisialisasi
     const firebaseConfig = { apiKey: "AIzaSyCSRS7lhcUzTnY_TlD9QWIWR5V-iNorDgI", authDomain: "familyday2026-97427.firebaseapp.com", projectId: "familyday2026-97427", storageBucket: "familyday2026-97427.firebasestorage.app", messagingSenderId: "639288774565", appId: "1:639288774565:web:9c344bd84c520c47cf224c" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
@@ -442,15 +443,15 @@
     // Grid 12 bulan (Januari hingga Disember)
     const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ogo", "Sep", "Okt", "Nov", "Dis"];
     
-    // Pemalar lokal untuk rujukan
+    // Variabel lokal untuk menyimpan data terbaru
     let latestDonorsGlobal = [];
     let latestDonationDateGlobal = "--/--/----";
     
-    // Data kewangan terkini keseluruhan (Dikemaskini kepada RM 5,400)
+    // Data finansial total target (RM 5400)
     let globalTotalCollected = 0;
     const globalTargetLimit = 5400;
 
-    // Kumpulan kata-kata semangat & penghargaan dinamik
+    // Kumpulan pesan motivasi dinamis
     const motivationTexts = [
         "“Satu Keluarga, Seribu Memori, Sejuta Makna! Jom sikit lagi mencapai sasaran!” 🚀",
         "“Setiap sumbangan anda sangat berharga untuk mengeratkan silaturahim kita semua!” ❤️",
@@ -469,6 +470,7 @@
         window.open("https://wa.me/?text=" + text);
     }
 
+    // Penghitung waktu mundur ke tanggal acara
     setInterval(() => {
         const diff = new Date("Dec 18, 2026 00:00:00").getTime() - new Date().getTime();
         document.getElementById('days').innerText = Math.max(0, Math.floor(diff / (1000*60*60*24)));
@@ -477,6 +479,7 @@
         document.getElementById('secs').innerText = Math.max(0, Math.floor((diff % (1000*60)) / 1000));
     }, 1000);
 
+    // Mendengarkan perubahan data real-time dari Firestore
     db.collection("kutipan_keluarga").doc("status_bayaran").onSnapshot((doc) => {
         const data = doc.data() || {};
         const families = Object.keys(data).filter(k => k !== "AVATARS" && k !== "HISTORY" && k !== "PHONES");
@@ -487,6 +490,7 @@
         
         document.getElementById('total-fund').innerText = "RM " + totalFundValue;
         
+        // Render slider melingkar bagian atas
         document.getElementById('slider').innerHTML = families.map(f => {
             const val = data[f] || 0;
             let g = val >= 200 ? 'glow-gold' : (val >= 100 ? 'glow-emerald' : 'glow-silver');
@@ -494,6 +498,7 @@
             return `<div style="text-align:center;"><img src="${avatars[f]}" class="avatar ${g}"><div style="font-size:0.6rem; margin-top:5px; color:var(--gold);">${status}</div><div style="font-size:0.7rem;">RM ${val}</div></div>`;
         }).join('');
 
+        // Render daftar peringkat keluarga (Leaderboard)
         document.getElementById('leaderboard').innerHTML = families.sort((a,b) => (data[b]||0)-(data[a]||0)).map(f => {
             const val = data[f] || 0;
             const paidMonths = Math.floor(val / 50);
@@ -502,7 +507,7 @@
             return `<div class="card"><div style="display:flex; align-items:center; gap:10px;"><img src="${avatars[f]}" class="avatar ${g}"><div><b>${f.replace(/_/g, ' ')}</b><br><small style="color:var(--gold);">${status}</small><br><b>RM ${val}</b></div></div><div class="month-grid">${months.map((m, i) => `<div class="month-box ${i < paidMonths ? 'paid' : ''}">${m}</div>`).join('')}</div></div>`;
         }).join('');
 
-        // 1. KEMASKINI ELEMEN KEMAJUAN DANA KESELURUHAN (WEB BANNER)
+        // 1. Perbarui elemen statistik kemajuan dana keseluruhan
         const totalNeeded = Math.max(0, globalTargetLimit - globalTotalCollected);
         const percentCollected = Math.min(100, Math.round((globalTotalCollected / globalTargetLimit) * 100));
         
@@ -511,33 +516,31 @@
         document.getElementById('banner-progress-percent').innerText = `${percentCollected}%`;
         document.getElementById('banner-progress-bar').style.width = `${percentCollected}%`;
 
-        // Pilih kata-kata hikmat berdasarkan indeks sumbangan secara pseudo-rawak
+        // Atur kutipan motivasi
         const quoteIndex = globalTotalCollected % motivationTexts.length;
         document.getElementById('banner-motivation-text').innerText = motivationTexts[quoteIndex];
 
-        // 2. LOGIK PENGESANAN PENYUMBANG TERBARU MELALUI SEJARAH
+        // 2. Deteksi riwayat sumbangan terbaru melalui log sejarah
         let history = data.HISTORY || [];
         if (!Array.isArray(history)) history = [];
 
         if (history.length > 0) {
-            // Dapatkan tarikh terbaru daripada rekod terakhir dalam sejarah
             const latestEntry = history[history.length - 1];
             const targetDate = latestEntry.date;
             latestDonationDateGlobal = targetDate;
 
-            // Kumpul semua sumbangan yang berlaku pada tarikh terbaru yang sama
+            // Kumpulkan kontributor pada tanggal terbaru yang sama
             const targetDonors = history.filter(h => h.date === targetDate);
             
-            // Kumpulkan mengikut keluarga yang unik
             const uniqueDonorsMap = {};
             targetDonors.forEach(item => {
-                const totalTarget = 600; // Sasaran Peribadi Keluarga (12 bulan * RM50)
+                const totalTarget = 600; // Sasaran pribadi keluarga
                 const percentFamily = Math.min(100, Math.round((item.total / totalTarget) * 100));
                 
                 uniqueDonorsMap[item.fam] = {
                     name: item.fam.replace(/_/g, ' '),
                     added: item.added,
-                    total: item.total, // Jumlah terkumpul keluarga
+                    total: item.total,
                     target: totalTarget,
                     percent: percentFamily,
                     avatar: avatars[item.fam] || 'https://via.placeholder.com/150'
@@ -546,7 +549,7 @@
 
             latestDonorsGlobal = Object.values(uniqueDonorsMap);
         } else {
-            // Fallback sekiranya sejarah kosong
+            // Fallback jika log sejarah kosong
             const sorted = [...families].sort((a, b) => (data[b] || 0) - (data[a] || 0));
             if (sorted.length > 0) {
                 const topFam = sorted[0];
@@ -557,7 +560,7 @@
 
                 latestDonorsGlobal = [{
                     name: topFam.replace(/_/g, ' '),
-                    added: 50, // Anggaran lalai asas
+                    added: 50,
                     total: currentTotal,
                     target: totalTarget,
                     percent: percentFamily,
@@ -566,7 +569,7 @@
             }
         }
 
-        // Paparkan Banner Dinamik pada halaman
+        // Render banner visual web
         if (latestDonorsGlobal.length > 0) {
             document.getElementById('banner-contribution-date').innerText = `Tarikh: ${latestDonationDateGlobal}`;
             
@@ -607,11 +610,10 @@
         }
     }
 
-    // Fungsi pintar yang mengira beza nilai, mencatat tarikh hari ini, dan merekod ke dalam HISTORY
+    // Menyimpan catatan transaksi baru ke riwayat
     async function updateData(fam) {
         const val = parseInt(document.getElementById('amt_'+fam).value);
         
-        // Ambil data terkini untuk membuat perbandingan jumlah asal
         const snap = await db.collection("kutipan_keluarga").doc("status_bayaran").get();
         const currentData = snap.data() || {};
         const oldVal = currentData[fam] || 0;
@@ -620,7 +622,6 @@
         let history = currentData.HISTORY || [];
         if (!Array.isArray(history)) history = [];
 
-        // Rekod sumbangan baru jika ada perbezaan baki (bayaran tambahan)
         if (diff > 0) {
             const today = new Date();
             const formattedDate = today.toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -633,7 +634,6 @@
                 timestamp: Date.now()
             });
 
-            // Kekalkan 15 sejarah terbaharu sahaja bagi mengehadkan saiz dokumen Firestore
             if (history.length > 15) history.shift();
         }
 
@@ -645,7 +645,7 @@
         alert("Jumlah dikemaskini!");
     }
 
-    // Fungsi utiliti untuk melukis segi empat tepat bucu bulat pada canvas
+    // Fungsi utilitas untuk melukis persegi panjang melengkung pada kanvas
     function drawRoundedRect(ctx, x, y, width, height, radius, fill, stroke) {
         ctx.beginPath();
         ctx.moveTo(x + radius, y);
@@ -662,15 +662,15 @@
         if (stroke) ctx.stroke();
     }
 
-    // FUNGSI UTK MENJANA & MUAT TURUN BANNER 9:16 (MENYOKONG MULTI-AVATAR & KEMAJUAN)
+    // MELUKIS POSTER (9:16 PNG) MENGIKUT REKA BENTUK SEMPURNA DAN TERSUSUN MENEGAK
     function generateAndDownloadBanner() {
         const canvas = document.getElementById('canvas-download');
         const ctx = canvas.getContext('2d');
 
-        // Sediakan Kanvas Bersaiz Poster Premium (1080 x 1920)
+        // Bersihkan kanvas 1080 x 1920
         ctx.clearRect(0, 0, 1080, 1920);
 
-        // 1. Warna Latar Belakang (Gradient Merah Gelap Kemewahan)
+        // 1. Latar Belakang Gradien Merah/Hitam Premium
         const bgGradient = ctx.createLinearGradient(0, 0, 1080, 1920);
         bgGradient.addColorStop(0, '#5f0a16');
         bgGradient.addColorStop(0.5, '#2c0309');
@@ -678,14 +678,14 @@
         ctx.fillStyle = bgGradient;
         ctx.fillRect(0, 0, 1080, 1920);
 
-        // Sinaran Latar Belakang Neon Merah
+        // Efek cahaya radial neon pink tengah
         const radialGrad = ctx.createRadialGradient(540, 960, 100, 540, 960, 800);
-        radialGrad.addColorStop(0, 'rgba(255, 0, 127, 0.2)');
+        radialGrad.addColorStop(0, 'rgba(255, 0, 127, 0.22)');
         radialGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
         ctx.fillStyle = radialGrad;
         ctx.fillRect(0, 0, 1080, 1920);
 
-        // 2. Bingkai Sempadan Merah Neon Pink & Emas
+        // 2. Bingkai Ganda (Neon Pink & Emas)
         ctx.strokeStyle = '#ff007f';
         ctx.lineWidth = 14;
         ctx.strokeRect(35, 35, 1010, 1850);
@@ -694,25 +694,28 @@
         ctx.lineWidth = 3;
         ctx.strokeRect(55, 55, 970, 1810);
 
-        // 3. Tajuk Utama
-        ctx.fillStyle = '#ffd700';
+        // 3. Tajuk Atas Poster
+        ctx.fillStyle = '#ff3399';
         ctx.textAlign = 'center';
-        ctx.font = 'bold 32px "Segoe UI", sans-serif';
-        ctx.fillText("🌸  SUMBANGAN TERKINI  🌸", 540, 140);
+        ctx.font = 'bold 34px "Segoe UI", sans-serif';
+        ctx.fillText("🌸  SUMBANGAN TERKINI!  🌸", 540, 150);
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = '900 78px "Segoe UI", sans-serif';
-        ctx.fillText("FAMILY DAY ACAD 2026", 540, 230);
+        ctx.font = '900 76px "Segoe UI", sans-serif';
+        ctx.fillText("FAMILY DAY ACAD 2026", 540, 235);
 
-        ctx.fillStyle = '#ff3399';
-        ctx.font = 'bold 36px "Segoe UI", sans-serif';
-        ctx.fillText(`TARIKH: ${latestDonationDateGlobal}`, 540, 290);
+        // Sempadan Tarikh
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        drawRoundedRect(ctx, 360, 275, 360, 50, 25, true, false);
+        ctx.fillStyle = '#ffd700';
+        ctx.font = 'bold 26px "Segoe UI", sans-serif';
+        ctx.fillText(`Tarikh: ${latestDonationDateGlobal}`, 540, 310);
 
-        // 4. SEKSYEN KEMAJUAN KESELURUHAN (Pada Poster 9:16 - Menggunakan target global limit RM 5,400)
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        // 4. Kad Kemajuan Keseluruhan (Sasaran vs Dana Terkumpul)
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
         ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
         ctx.lineWidth = 3;
-        drawRoundedRect(ctx, 100, 330, 880, 180, 20, true, true);
+        drawRoundedRect(ctx, 100, 360, 880, 190, 24, true, true);
 
         const overallNeeded = Math.max(0, globalTargetLimit - globalTotalCollected);
         const overallPercent = Math.min(100, Math.round((globalTotalCollected / globalTargetLimit) * 100));
@@ -720,175 +723,139 @@
         // Teks Sasaran
         ctx.fillStyle = '#a8a29e';
         ctx.font = 'bold 24px "Segoe UI", sans-serif';
-        ctx.fillText("SASARAN KITA", 220, 380);
+        ctx.fillText("SASARAN KITA", 230, 410);
         ctx.fillStyle = '#ffd700';
-        ctx.font = '900 36px "Segoe UI", sans-serif';
-        ctx.fillText(`RM ${globalTargetLimit}`, 220, 430);
+        ctx.font = '900 38px "Segoe UI", sans-serif';
+        ctx.fillText(`RM ${globalTargetLimit}`, 230, 460);
 
-        // Teks Terkumpul Semasa
+        // Teks Terkumpul
         ctx.fillStyle = '#a8a29e';
         ctx.font = 'bold 24px "Segoe UI", sans-serif';
-        ctx.fillText("DANA TERKUMPUL", 540, 380);
+        ctx.fillText("DANA SEMASA", 540, 410);
         ctx.fillStyle = '#10b981';
-        ctx.font = '900 36px "Segoe UI", sans-serif';
-        ctx.fillText(`RM ${globalTotalCollected}`, 540, 430);
+        ctx.font = '900 38px "Segoe UI", sans-serif';
+        ctx.fillText(`RM ${globalTotalCollected}`, 540, 460);
 
         // Teks Masih Kurang
         ctx.fillStyle = '#a8a29e';
         ctx.font = 'bold 24px "Segoe UI", sans-serif';
-        ctx.fillText("MASIH KURANG", 860, 380);
+        ctx.fillText("MASIH KURANG", 850, 410);
         ctx.fillStyle = '#f43f5e';
-        ctx.font = '900 36px "Segoe UI", sans-serif';
-        ctx.fillText(`RM ${overallNeeded}`, 860, 430);
+        ctx.font = '900 38px "Segoe UI", sans-serif';
+        ctx.fillText(`RM ${overallNeeded}`, 850, 460);
 
-        // Bar Kemajuan Keseluruhan
+        // Bar Kemajuan Utama Keseluruhan
         ctx.fillStyle = '#1e293b';
-        drawRoundedRect(ctx, 130, 465, 820, 26, 13, true, false);
-        const barFillWidth = Math.max(26, Math.floor((overallPercent / 100) * 820));
+        drawRoundedRect(ctx, 130, 495, 820, 28, 14, true, false);
+        const barFillWidth = Math.max(28, Math.floor((overallPercent / 100) * 820));
         const fillGradient = ctx.createLinearGradient(130, 0, 950, 0);
         fillGradient.addColorStop(0, '#10b981');
         fillGradient.addColorStop(1, '#22c55e');
         ctx.fillStyle = fillGradient;
-        drawRoundedRect(ctx, 130, 465, barFillWidth, 26, 13, true, false);
+        drawRoundedRect(ctx, 130, 495, barFillWidth, 28, 14, true, false);
 
-        // Peratusan Keseluruhan Semasa
+        // Teks Peratusan Keseluruhan
         ctx.fillStyle = '#ffffff';
         ctx.font = '900 18px "Segoe UI", sans-serif';
-        ctx.fillText(`${overallPercent}% SELESAI`, 540, 485);
+        ctx.fillText(`${overallPercent}% SELESAI`, 540, 515);
 
-        // 5. Kotak Maklumat Utama Penyumbang
-        ctx.fillStyle = 'rgba(42, 3, 9, 0.85)';
+        // 5. Kad Utama Penyumbang (Latar Belakang Hitam Gelap dengan Sempadan Neon)
+        ctx.fillStyle = 'rgba(42, 3, 9, 0.88)';
         ctx.strokeStyle = '#ff007f';
-        ctx.lineWidth = 6;
-        drawRoundedRect(ctx, 100, 540, 880, 1020, 40, true, true);
+        ctx.lineWidth = 5;
+        drawRoundedRect(ctx, 100, 580, 880, 980, 36, true, true);
 
         ctx.fillStyle = '#ff3399';
-        ctx.font = 'bold 34px "Segoe UI", sans-serif';
-        ctx.fillText("📢  TERIMA KASIH DIATAS SUMBANGAN  📢", 540, 600);
+        ctx.font = '900 34px "Segoe UI", sans-serif';
+        ctx.fillText("📢  TERIMA KASIH DIATAS SUMBANGAN  📢", 540, 640);
 
         const totalDonors = latestDonorsGlobal.length;
         let imagesLoaded = 0;
         const loadedImages = [];
 
+        // Melukis semua isi kanvas secara saksama setelah gambar avatar selesai dimuat
         const drawAllContent = () => {
+            const cardHeight = 185;
+            const gap = 25;
+            const startY = 690;
+
             latestDonorsGlobal.forEach((donor, index) => {
-                let startX, startY;
+                // Maksimum muat 4 kad menegak tanpa lari dari kawasan sempadan
+                if (index >= 4) return;
 
-                if (totalDonors === 1) {
-                    startX = 540;
-                    startY = 920;
+                const currentCardY = startY + index * (cardHeight + gap);
 
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 68px "Segoe UI", sans-serif';
-                    ctx.fillText(donor.name, startX, startY - 180);
+                // Kotak kad penyumbang mini (Sama reka bentuk web)
+                ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+                ctx.strokeStyle = 'rgba(255, 0, 127, 0.4)';
+                ctx.lineWidth = 2;
+                drawRoundedRect(ctx, 130, currentCardY, 820, cardHeight, 22, true, true);
 
-                    ctx.fillStyle = '#ffd700';
-                    ctx.font = '900 135px "Segoe UI", sans-serif';
-                    ctx.fillText(`+RM ${donor.added}`, startX, startY - 40);
+                // Melukis Avatar Bulat di bahagian kiri kad
+                const avatarCenterX = 230;
+                const avatarCenterY = currentCardY + 92;
+                const avatarRadius = 60;
 
-                    ctx.fillStyle = '#cbd5e1';
-                    ctx.font = 'bold 34px "Segoe UI", sans-serif';
-                    ctx.fillText(`Terkumpul: RM ${donor.total} / RM ${donor.target}`, startX, startY + 40);
-
-                    ctx.fillStyle = '#334155';
-                    drawRoundedRect(ctx, startX - 250, startY + 75, 500, 12, 6, true, false);
-                    ctx.fillStyle = '#ffd700';
-                    const personalBarWidth = Math.max(12, Math.floor((donor.percent / 100) * 500));
-                    drawRoundedRect(ctx, startX - 250, startY + 75, personalBarWidth, 12, 6, true, false);
-
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(startX, startY + 300, 180, 0, Math.PI * 2, true);
-                    ctx.closePath();
-                    ctx.clip();
-                    try {
-                        ctx.drawImage(loadedImages[index], startX - 180, startY + 120, 360, 360);
-                    } catch(e) {
-                        ctx.fillStyle = '#1e293b';
-                        ctx.fillRect(startX - 180, startY + 120, 360, 360);
-                    }
-                    ctx.restore();
-
-                    ctx.strokeStyle = '#ff7700';
-                    ctx.lineWidth = 12;
-                    ctx.beginPath();
-                    ctx.arc(startX, startY + 300, 180, 0, Math.PI * 2, true);
-                    ctx.stroke();
-
-                } else {
-                    const isLeft = index % 2 === 0;
-                    startX = totalDonors === 2 ? (isLeft ? 310 : 770) : (index < 2 ? (isLeft ? 310 : 770) : 540);
-                    startY = totalDonors <= 2 ? 1000 : (index < 2 ? 860 : 1260);
-
-                    const avatarRadius = 115;
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = '900 42px "Segoe UI", sans-serif';
-                    ctx.fillText(donor.name, startX, startY - 140);
-
-                    ctx.fillStyle = '#ffd700';
-                    ctx.font = '900 80px "Segoe UI", sans-serif';
-                    ctx.fillText(`+RM ${donor.added}`, startX, startY - 50);
-
-                    ctx.fillStyle = '#cbd5e1';
-                    ctx.font = 'bold 26px "Segoe UI", sans-serif';
-                    ctx.fillText(`RM ${donor.total} / RM ${donor.target}`, startX, startY + 10);
-
-                    ctx.fillStyle = '#334155';
-                    drawRoundedRect(ctx, startX - 150, startY + 30, 300, 8, 4, true, false);
-                    ctx.fillStyle = '#ffd700';
-                    const personalBarWidth = Math.max(8, Math.floor((donor.percent / 100) * 300));
-                    drawRoundedRect(ctx, startX - 150, startY + 30, personalBarWidth, 8, 4, true, false);
-
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(startX, startY + 180, avatarRadius, 0, Math.PI * 2, true);
-                    ctx.closePath();
-                    ctx.clip();
-                    try {
-                        ctx.drawImage(loadedImages[index], startX - avatarRadius, startY + 180 - avatarRadius, avatarRadius * 2, avatarRadius * 2);
-                    } catch(e) {
-                        ctx.fillStyle = '#1e293b';
-                        ctx.fillRect(startX - avatarRadius, startY + 180 - avatarRadius, avatarRadius * 2, avatarRadius * 2);
-                    }
-                    ctx.restore();
-
-                    ctx.strokeStyle = '#ff7700';
-                    ctx.lineWidth = 8;
-                    ctx.beginPath();
-                    ctx.arc(startX, startY + 180, avatarRadius, 0, Math.PI * 2, true);
-                    ctx.stroke();
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2, true);
+                ctx.closePath();
+                ctx.clip();
+                try {
+                    ctx.drawImage(loadedImages[index], avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarRadius * 2, avatarRadius * 2);
+                } catch(e) {
+                    ctx.fillStyle = '#1e293b';
+                    ctx.fillRect(avatarCenterX - avatarRadius, avatarCenterY - avatarRadius, avatarRadius * 2, avatarRadius * 2);
                 }
+                ctx.restore();
+
+                // Lingkaran Jingga di sekeliling avatar
+                ctx.strokeStyle = '#ff7700';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.arc(avatarCenterX, avatarCenterY, avatarRadius, 0, Math.PI * 2, true);
+                ctx.stroke();
+
+                // Lencana "TERIMA KASIH" merah jambu kecil di bawah avatar
+                ctx.fillStyle = '#ff007f';
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                drawRoundedRect(ctx, avatarCenterX - 65, avatarCenterY + 42, 130, 24, 8, true, true);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 11px "Segoe UI", sans-serif';
+                ctx.fillText("TERIMA KASIH!", avatarCenterX, avatarCenterY + 58);
+
+                // --- TEKS MAKLUMAT PENYUMBANG (Diposisikan ke sebelah kanan avatar) ---
+                ctx.textAlign = 'left';
+
+                // 1. Nama Penyumbang
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 38px "Segoe UI", sans-serif';
+                ctx.fillText(donor.name, 320, currentCardY + 56);
+
+                // 2. Jumlah Sumbangan Baru (+RM X)
+                ctx.fillStyle = '#ffd700';
+                ctx.font = '900 52px "Segoe UI", sans-serif';
+                ctx.fillText(`+RM ${donor.added}`, 320, currentCardY + 114);
+
+                // 3. Teks baki bayaran Terkumpul (RM Y / 600) sebelah jumlah baru
+                const offsetAmtWidth = ctx.measureText(`+RM ${donor.added}`).width;
+                ctx.fillStyle = '#cbd5e1';
+                ctx.font = 'bold 26px "Segoe UI", sans-serif';
+                ctx.fillText(`(${donor.total} / ${donor.target})`, 340 + offsetAmtWidth, currentCardY + 104);
+
+                // 4. Bar Kemajuan Mini Peribadi Emas di bawah
+                ctx.fillStyle = '#334155';
+                drawRoundedRect(ctx, 320, currentCardY + 140, 500, 10, 5, true, false);
+                ctx.fillStyle = '#ffd700';
+                const personalFillWidth = Math.max(10, Math.floor((donor.percent / 100) * 500));
+                drawRoundedRect(ctx, 320, currentCardY + 140, personalFillWidth, 10, 5, true, false);
             });
 
-            if (totalDonors > 1) {
-                ctx.fillStyle = '#ff007f';
-                ctx.beginPath();
-                ctx.arc(540, 1490, 75, 0, Math.PI * 2, true);
-                ctx.fill();
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 4;
-                ctx.stroke();
+            // Set semula jajaran teks ke tengah (center) untuk pengaki poster
+            ctx.textAlign = 'center';
 
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '900 20px "Segoe UI", sans-serif';
-                ctx.fillText("TERIMA", 540, 1480);
-                ctx.fillText("KASIH!", 540, 1510);
-            } else {
-                ctx.fillStyle = '#ff007f';
-                ctx.beginPath();
-                ctx.arc(710, 1220, 95, 0, Math.PI * 2, true);
-                ctx.fill();
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 5;
-                ctx.stroke();
-
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '900 24px "Segoe UI", sans-serif';
-                ctx.fillText("TERIMA", 710, 1205);
-                ctx.fillText("KASIH!", 710, 1245);
-            }
-
+            // 6. Kata-kata Hikmat di bawah sekali kotak utama
             ctx.fillStyle = '#ffd700';
             ctx.font = 'italic bold 28px "Segoe UI", sans-serif';
             
@@ -897,7 +864,7 @@
             
             const words = chosenQuote.split(' ');
             let line = '';
-            let y = 1500;
+            let y = 1460;
             const maxWidth = 760;
             const lineHeight = 38;
 
@@ -915,6 +882,7 @@
             }
             ctx.fillText(line, 540, y);
 
+            // 7. Pengaki Poster (Footer)
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -930,6 +898,7 @@
             ctx.font = 'bold 22px "Segoe UI", sans-serif';
             ctx.fillText("#FamilyDayACAD2026  •  #SatuKeluargaSeribuMemori", 540, 1770);
 
+            // Muat turun automatik
             const dataUrl = canvas.toDataURL('image/png');
             const downloadLink = document.createElement('a');
             downloadLink.download = `Sumbangan_Terkini_${latestDonationDateGlobal.replace(/\//g, '_')}.png`;
@@ -939,6 +908,7 @@
             document.body.removeChild(downloadLink);
         };
 
+        // Muat semua imej avatar sebelum melukis kanvas demi mengelakkan ralat CORS kanvas kosong
         latestDonorsGlobal.forEach((donor, idx) => {
             const img = new Image();
             img.crossOrigin = "anonymous";
@@ -958,3 +928,4 @@
 </script>
 </body>
 </html>
+
